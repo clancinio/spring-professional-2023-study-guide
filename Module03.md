@@ -130,4 +130,116 @@ When working with development/test databases, the following beans are very usefu
 
 ### 3. What is the Template design pattern and what is the JDBC template?
 
+The Template Design Pattern is a behavioural design pattern that can be used to
+encapsulate an algorithm/main flow with its stepsin a way to achieve steps customization and shared code re-usability. It is achieved 
+by creating an abstract class that contains the algorithm definition/main flow with shared code, and the child classes extending the abstract class can customize the steps of the algorithm.
 
+Template Design Pattern suggests that:
+
+1. Break down the algorithm into a series of methods
+2. Put a series of calls to these methods or steps inside a single @template method"
+3. The steps may either be abstract, or have some defaults implementation inside the parent class
+4. To use the algorithm, the client must provide its own subclass and implement all abstract steps
+
+_Video: https://www.youtube.com/watch?v=cGoVDzHvD4A&ab_channel=Geekific_
+
+**<p align="center">Template Method Abstract Class</p>**
+
+~~~
+public abstract class HouseTemplate {
+
+	// Template method, final so subclasses can't override
+	public final void buildHouse(){
+		buildFoundation();
+		buildPillars();
+		buildWalls();
+		buildWindows();
+		System.out.println("House is built.");
+	}
+
+	// Default implementation - Chose to override or not
+	private void buildWindows() {
+		System.out.println("Building Glass Windows");
+	}
+
+	private void buildFoundation() {
+		System.out.println("Building foundation with cement,iron rods and sand");
+	}
+	
+	// Methods to be implemented by subclasses
+	public abstract void buildWalls();
+	public abstract void buildPillars();
+}
+~~~ 
+
+**<p align="center">Template Method Concrete Class</p>**
+
+~~~
+public class WoodenHouse extends HouseTemplate {
+
+	@Override
+	public void buildWalls() {
+		System.out.println("Building Wooden Walls");
+	}
+
+	@Override
+	public void buildPillars() {
+		System.out.println("Building Pillars with Wood coating");
+	}
+
+}
+~~~
+
+_Source: https://www.digitalocean.com/community/tutorials/template-method-design-pattern-in-java_
+
+#### What is the JDBC Template?
+
+Spring JdbcTemplate is a powerful mechanism to connect to the database and execute SQL queries. It internally uses JDBC api, but eliminates a lot of problems of JDBC API.
+
+Problems of JDBC API
+
+- We need to write a lot of code before and after executing the query, such as creating connection, statement, closing resultset, connection etc.
+- We need to perform exception handling code on the database logic.
+- We need to handle transaction.
+- Repetition of all these codes from one to another database logic is a time consuming task.
+
+Advantage of Spring JdbcTemplate
+- Spring JdbcTemplate eliminates all the above mentioned problems of JDBC API. It provides you methods to write the queries directly, so it saves a lot of work and time.
+
+~~~
+import org.springframework.jdbc.core.JdbcTemplate;  
+  
+public class EmployeeDao {  
+
+    private JdbcTemplate jdbcTemplate;  
+      
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {  
+        this.jdbcTemplate = jdbcTemplate;  
+    }  
+      
+    public int saveEmployee(Employee e){  
+        String query="insert into employee values(  
+        '"+e.getId()+"','"+e.getName()+"','"+e.getSalary()+"')";  
+        return jdbcTemplate.update(query);  
+    }  
+    
+    public int updateEmployee(Employee e){  
+        String query="update employee set   
+        name='"+e.getName()+"',salary='"+e.getSalary()+"' where id='"+e.getId()+"' ";  
+        return jdbcTemplate.update(query);  
+    }  
+    
+    public int deleteEmployee(Employee e){  
+        String query="delete from employee where id='"+e.getId()+"' ";  
+        return jdbcTemplate.update(query);  
+    }  
+    
+    public List<Employee> getEmloyees(){  
+      String SQL = "select * from Employee";
+      List <Employee> employee = jdbcTemplateObject.query(SQL, new EmployeeMapper());
+      return students; 
+    }  
+}
+~~~
+
+_Source: https://www.javatpoint.com/spring-JdbcTemplate-tutorial_

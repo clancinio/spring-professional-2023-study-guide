@@ -6,3 +6,6 @@
 
 ###  [Module 3 - Data Management: JDBC, Transactions, Spring Data JPA](https://github.com/clancinio/spring-professional-2023-study-guide/blob/main/Module03.md)
 
+###  [Module 4 - Spring Boot Introduction](https://github.com/clancinio/spring-professional-2023-study-guide/blob/main/Module04.md)
+
+###  [Module 5 - Spring MVC and the Web Layer](https://github.com/clancinio/spring-professional-2023-study-guide/blob/main/Module05.md)
