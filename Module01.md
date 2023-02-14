@@ -91,6 +91,89 @@ Dependency injection is a pattern that solves the problem of flexible dependency
 
 ### 3. What is an interface and what are the advantages of making use of them in Java? Why are they recommended for Spring Beans?
 
+**OOP Definition** 
+
+An interface is a description of the actions an object can perform. It is a way to enforce actions on objects that implement the interface.
+
+**Java Definition** 
+
+An Interface in Java programming language is defined as an abstract type used to specify the behavior of a class. An interface in Java is a blueprint of a behaviour. A Java interface contains static constants and abstract methods.
+
+The interface in Java is a mechanism to achieve abstraction. There can be only abstract methods in the Java interface, not the method body. It is used to achieve abstraction and multiple inheritance in Java. In other words, you can say that interfaces can have abstract methods and variables. It cannot have a method body. Java Interface also represents the IS-A relationship.
+
+When we decide a type of entity by its behaviour and not via attribute we should define it as an interface.
+
+Like a class, an interface can have methods and variables, but the methods declared in an interface are by default abstract (only method signature, no body).
+
+A Java interface may also contain:
+
+- Constants 
+- Default methods (Java 8)
+- Static methods
+- Nested types
+
+#### Advantages of using interfaces in Java 
+
+- Allows decoupling between the contract and it's implementation 
+- Allows declaring contract between callee and caller
+- Increases interchangeability 
+- Increases testability 
+
+#### Advantages of using interfaces in Spring
+
+- Allows for use of JDK Dynamic proxy 
+- Allows implementation hiding 
+- Allows to easily switch beans
+
+<br />
+
+<p align="center">Vehicle Interface</p>
+
+~~~
+interface Vehicle {
+     
+    // all are the abstract methods.
+    void changeGear(int a);
+    void speedUp(int a);
+    void applyBrakes(int a);
+}
+~~~
+
+<p align="center">Vehicle Bicycle Class</p>
+
+```
+class Bicycle implements Vehicle{
+     
+    int speed;
+    int gear;
+     
+    // to change gear
+    @Override
+    public void changeGear(int newGear){
+         
+        gear = newGear;
+    }
+     
+    // to increase speed
+    @Override
+    public void speedUp(int increment){
+         
+        speed = speed + increment;
+    }
+     
+    // to decrease speed
+    @Override
+    public void applyBrakes(int decrement){
+         
+        speed = speed - decrement;
+    }
+     
+    public void printStates() {
+        System.out.println("speed: " + speed
+            + " gear: " + gear);
+    }
+}
+```
 ***
 
 ### 4. What is meant by "application-context"?
