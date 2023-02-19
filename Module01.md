@@ -174,20 +174,82 @@ class Bicycle implements Vehicle{
     }
 }
 ```
+
+_Source: https://www.geeksforgeeks.org/interfaces-in-java/_
 ***
 
 ### 4. What is meant by "application-context"?
+
+The Application Context is a central part of a Spring Application. It holds bean definitions and contains registry and application components. It allows you to retrieve assembled and configured beans.
+
+**Main responsibilities of Application Context:** 
+
+- Initiates, configures, and assembles beans
+- Manages bean lifecycle
+- Is a Bean Factory
+- Is a Resource Loader
+- Has the ability to push events to registered event listeners 
+- Exposes environment which allows to resolve properties
+
+**Common Application Context types:**
+
+- AnnotationConfigApplicationContext
+- AnnotationConfigWebApplicationContext
+- ClassPathXmlApplicationContext
+- FileSystemXmlApplicationContext
+- XmlWebApplicationContext
+
+
 
 ***
 
 ### 5. What is the concept of a "container" and what is its lifecycle?
 
+The Spring container is the core of Spring Framework. The container is used for creating the objects and configuring them. Also, Spring IoC Containers use for managing the complete lifecycle from creation to its destruction. It uses Dependency Injection (DI) to manage components and these objects are called Spring Beans. The container uses configuration metadata which represent by Java code, annotations or XML along with Java POJO classes
+
+**Spring Container Lifecycle**
+
+- Application is started
+- Spring container is created
+- Container reads configuration
+- Bean definitions are created from configuration
+- BeanFactoryPostProcessors are processing bean definitions
+- Instances of Spring Beans are created
+- Spring Beans are configured and assembled - resolve property values and inject
+- BeanPostProcessors are called
+- Application runs
+- Application gets shut down
+- Spring context is closed
+- Destruction callbacks are invoked
+
 ***
 
 ### 6. How are you going to create a new instance of an ApplicationContext?
 
+Non-Web Application:
+
+- AnnotationConfigApplicationContext
+- ClassPathXmlApplicationContext
+- FileSystemXmlApplicationContext 
+
+Web Applications:
+
+- Servlet 2 - web.xml, ContextLoaderListener, DispatchServlet
+- Servlet 3 - XmlWebApplicationContext
+- Servlet 3 - AnnotationConfigWebApplicationContext
+
+Spring Boot:
+
+- SpringBootConsoleApplication - CommandLineRunner
+- SpringBootApplication - Embedded Tomcat
+
+
 
 ***
+
+### 6. Can you describe the lifecycle of a Spring Bean in an ApplicationContext?
+
+......
 
 ### 19. What is a proxy object and what are the two different types of proxy objects Spring can create? What are the limitations of these two types of proxies? What is the power of a proxy object and what are the disadvantages? 
 
