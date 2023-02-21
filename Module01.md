@@ -49,7 +49,7 @@ public class Chef {
 
     private Food food;
     
-    public Chef() {
+    public Chef(Food food) {
         this.food = food;
     }
     
@@ -248,6 +248,30 @@ Spring Boot:
 ***
 
 ### 6. Can you describe the lifecycle of a Spring Bean in an ApplicationContext?
+
+**Context is created**
+
+- Bean definitions are created based on Spring Bean Configuration
+- BeanFactoryPostProcessors are invoked
+
+**Bean is created**
+
+- Instance of Bean is created
+- Properties and Dependencies are set
+- BeanPostProcessor::postProcessBeforeInitialization is called
+- @PostConstruct method gets called
+- InitializingBean::afterPropertiesSet method gets called
+- @Bean(initMethod) gets called
+- BeanPostProcessor::postProcessAfterInitialization gets called
+
+Bean is ready to use
+
+**Bean is destroyed**
+
+- @PreDestroy method gets called
+- DisposableBean::destroy gets called 
+- @Bean(destroyMethod) method gets called 
+
 
 ......
 
