@@ -247,7 +247,7 @@ Spring Boot:
 
 ***
 
-### 6. Can you describe the lifecycle of a Spring Bean in an ApplicationContext?
+### 7. Can you describe the lifecycle of a Spring Bean in an ApplicationContext?
 
 **Context is created**
 
@@ -273,7 +273,63 @@ Bean is ready to use
 - @Bean(destroyMethod) method gets called 
 
 
-......
+***
+
+### 8. How are you going to create an ApplicationContext in an Integration test? 
+
+Add Spring test dependency:
+```
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-test</artifactId>
+    <version>5.1.6.RELEASE</version>
+    <scope>test</scope>
+</dependency>
+```
+
+Add Spring Runner to the test class:
+```
+@RunWith(SpringRunner.class)
+public class ServiceTest {
+    // ...
+}
+```
+
+Add Context Configuration to the test class
+```
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = AppConfig.class) 
+public class ServiceTest {
+    // ...
+}
+```
+
+***
+
+### 9. What is the preferred way to close an Application Context? Does Spring do this for you?
+
+Standalone non-web applications:
+
+- Register shutdown hook by calling ConfigurableApplicationContext#registerShutdownHook - recommended way
+- ConfigurableApplicationContext#close
+
+Web Application:
+
+- ContextLoaderListener will automatically close context when the web containers stops the web application
+
+Spring Boot:
+
+- Application Context will automatically be closed 
+- Shutdown hook will automatically be registered 
+- ContextLoaderListener applies to Spring Boot Web Application as well 
+
+***
+
+### 10. Can you describe: Dependency Injection using Java configuration? DI using annotations (@Component, @Autowired)? Component scanning, Stereotypes and MetaAnnotations? Scopes for Spring Beans? What is the default scope?
+
+
+
+***
 
 ### 19. What is a proxy object and what are the two different types of proxy objects Spring can create? What are the limitations of these two types of proxies? What is the power of a proxy object and what are the disadvantages? 
 
