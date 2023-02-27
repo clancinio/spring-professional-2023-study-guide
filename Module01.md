@@ -327,8 +327,73 @@ Spring Boot:
 
 ### 10. Can you describe: Dependency Injection using Java configuration? DI using annotations (@Component, @Autowired)? Component scanning, Stereotypes and MetaAnnotations? Scopes for Spring Beans? What is the default scope?
 
+**Dependency Injection using Java configuration**
 
+When using DI with Java configuration, you need to explicitly define all of your beans and use @_Bean_ (to define the bean) and @_Autowire_ (to inject any dependencies) at the method level.
 
+Example:
+
+```
+@Configuration
+public class AppConfiguration {
+
+    @Bean
+    @Autowired
+    public class bean1(Bean2 bean2, Bean3 bean3){
+        return new Bean1(bean2, bean3);
+    }
+    
+    @Bean
+    public class bean2(){
+        return new Bean2();
+    }
+    
+    @Bean
+    public class bean3(){
+        return new Bean3();
+    }
+}
+```
+<br> 
+
+**Dependency Injection using Annotations**
+
+Create classes annotated with the @Component annotation:
+
+```
+@Component
+public class SpringBeanOne {}
+```
+```
+@Component
+public class SpringBeanTwo {}
+```
+```
+@Component
+public class SpringBeanThree {}
+```
+<br> 
+Define dependencies when required:
+
+```
+@Component
+public class SpringBeanOne {
+
+    @Autowired
+    public SpringBeanTwo springBeanTwo
+    
+    @Autowired
+    public SpringBeanThree springBeanThree
+}
+```
+<br>
+
+Create configuration with Component Scanning enabled:
+
+```
+@ComponentScan
+public class ApplicationConfiguration {}
+```
 ***
 
 ### 19. What is a proxy object and what are the two different types of proxy objects Spring can create? What are the limitations of these two types of proxies? What is the power of a proxy object and what are the disadvantages? 
