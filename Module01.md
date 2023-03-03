@@ -394,6 +394,47 @@ Create configuration with Component Scanning enabled:
 @ComponentScan
 public class ApplicationConfiguration {}
 ```
+<br> 
+
+**Component Scanning**
+
+Component Scanning is the process in which Spring scans the Classpath in search for classes annotated with stereotype annotations  (@Component, @Service, @Controller...) and based on those create bean definitions.
+
+Simple Component Scanning within Configuration package and all subclasses:
+```
+@ComponentScan
+public class ApplicationConfiguration {
+}
+```
+
+Advanced Component Scanning rules:
+```
+@ComponentScan(
+        basePackages = "com.spring.professional.exam.tutorial.module01.question10.annotations.beans",
+        //basePackageClasses = SpringBean1.class,
+        includeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*Bean.*"),
+        excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*Bean1.*")
+)
+public class ApplicationConfigurationAdvanced {
+}
+```
+
+<br> 
+
+**Stereotypes - Definition**
+
+
+
+
+
+
+
+
+
+
+
+
+
 ***
 
 ### 19. What is a proxy object and what are the two different types of proxy objects Spring can create? What are the limitations of these two types of proxies? What is the power of a proxy object and what are the disadvantages? 
