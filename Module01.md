@@ -423,11 +423,54 @@ public class ApplicationConfigurationAdvanced {
 
 **Stereotypes - Definition**
 
+Stereotypes are annotations applied to classes to describe the role that will be performed by this class. Spring discovers classes by stereotypes and creates definitions based on those types.
 
+![](images/annotations.png)
 
+Types of Stereotypes:
 
+- Component - generic component in the system, root stereotype, candidate for autoscanning
+- Service - class will contain business logic
+- Repository - class is a data repository used for data access objects and persistence
+- Controller - class is a controller, usually a web controller (used with @RequestMapping)
 
+_Source: https://www.udemy.com/course/spring-certified-tutorial/_
 
+<br> 
+
+**Meta-annotations**
+
+Meta-annotations are annotations that can be used to create new annotations.
+
+Example:
+
+@RestController annotation is using @Controller
+```
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Controller
+@ResponseBody
+public @interface RestController {
+
+@AliasFor(annotation = Controller.class)
+String value() default "";
+
+}
+```
+
+<br> 
+
+**Scopes of Spring Beans**
+
+| Scope      | Description                                |
+|------------|--------------------------------------------|
+| Singleton  | Single Bean per Spring Container (Default) |
+| Prototype  | New instance each time a Bean is requested |
+| Request    | New instance per each HTTP Request         |
+| Session    | New instance per each HTTP Session         |
+| Application | One instance per each ServletContext       |
+| Websocket  | One instance per each WebSocket            |
 
 
 
