@@ -473,11 +473,110 @@ String value() default "";
 | Websocket  | One instance per each WebSocket            |
 
 
+_Source: https://www.udemy.com/course/spring-certified-tutorial/_
 
 
+***
+
+### 11. Are beans lazily or eagerly instantiated by default? How do you alter this behaviour?
+
+**Lazy and Eager Instance Creation vs Scope Type**
+
+- Singleton Beans are eagerly instantiated by default
+
+- Prototype Beans are lazily instantiated by default (instance is created when a bean is requested)
+
+- …however, if Singleton Bean has a dependency on Prototype Bean, then Prototype Bean Instance will be created eagerly to satisfy dependencies for Singleton Bean
+So whenever you have a lazy or eagerly instantiation by default it depends on the scope of the bean. If you have a Singleton bean which is default scope then this bean will be eagerly instantiated by default. But if you are working with the prototype bean you will have a lazy instantiation by default.
+And there is one exception of this rule. If you have a Singleton bean that has a dependency on the prototype bean then the prototype instance will be created eagerly to satisfy the dependency for a singleton bean.
+
+**Altering Behavior**
 
 
+1) **You can change the default behavior for all beans by @ComponentScan annotation**
+```
+@ComponentScan(lazyInit = true)
+@Configuration
+public class AppConfig {}
+```
+- Setting lazyInit to true, will make all beans lazy, even Singleton Beans
+- Setting lazyInit to false (default), will create Singleton Beans Eagerly and Prototype Beans Lazily
 
+2) **You can also change the default behavior by using @Lazy annotation**
+
+   - @Lazy annotation takes one parameter - Whether lazy initialization should occur
+   -  By default, @Lazy is used to mark a bean as lazily instantiated
+   - You can use @Lazy(false) to force Eager Instantiation – use case for @ComponentScan(lazyInit = true) when some beans always need to be instantiated eagerly
+   <br>
+   
+   There are some cases when you want to create all of your beans lazy but one of the beans you want to instantiate eagerly. For example, this bean create some code that initiates the database connection and something like this.
+   
+   And there is a way to force the eager initialization. You can do it with the @Lazy(false) annotation.
+
+
+3. **@Lazy can be applied to:**
+
+   - Classes annotated with @Component – makes bean Lazy or as specified by @Lazy parameter. Setting @Lazy to Prototype scope beans doesn't make sense, because prototypes are lazy by default.
+   
+   ```
+   @Componet
+   @Lazy
+   public class SpringBean(){
+      public SpringBean(){
+         System.ou.println("Creating " + getClass().getSimpleName() + " - Lazy Singleton Bean";
+      }
+   }
+   ```
+   - Classes annotated with @Configuration annotation – make all beans provided by configuration lazy or as specified by @Lazy parameter
+   
+   ```
+   @Configuration
+   @Lazy
+   public class ApplicationConfig(){
+   
+      public SpringBeanOne(){
+         return new SpringBeanOne();
+      }
+   
+      public SpringBeanTwo(){
+         return new SpringBeanOne();
+      }
+   }
+   ```
+   
+   - The method annotated with @Bean annotation – makes bean created by method Lazy or as specified by @Lazy parameter
+
+   ```
+   @Configuration
+   public class ApplicationConfig(){
+   
+      @Lazy
+      public SpringBeanOne(){
+         // Lazily instantiated
+         return new SpringBeanOne();
+      }
+   
+      public SpringBeanTwo(){
+         return new SpringBeanOne();
+      }
+   }
+   ```
+      ```
+   @Configuration
+   @Lazy
+   public class ApplicationConfig(){
+   
+      @Lazy(lazyInit = false)
+      public SpringBeanOne(){
+         // Eagerly instantiated
+         return new SpringBeanOne();
+      }
+   
+      public SpringBeanTwo(){
+         return new SpringBeanOne();
+      }
+   }
+   ```
 ***
 
 ### 19. What is a proxy object and what are the two different types of proxy objects Spring can create? What are the limitations of these two types of proxies? What is the power of a proxy object and what are the disadvantages? 
