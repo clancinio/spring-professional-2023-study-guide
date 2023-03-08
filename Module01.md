@@ -26,7 +26,8 @@ Advantages of using Dependency Injection:
 
 Without dependency injection - tightly coupled
 - It cannot be used and tested independently from this class (hard-dependency)
-```
+
+```java
 public class Chef {
 
     private Food burger;
@@ -44,7 +45,8 @@ With dependency injection - loosely coupled
 - We decoupled the construction of the main class from the construction of it's dependencies
 - The dependency is provided from the outside
 - If the objects implementation changes in the future,  it is no longer the dependent classes responsibility to figure out what actually changed
-```
+
+```java
 public class Chef {
 
     private Food food;
@@ -129,7 +131,7 @@ A Java interface may also contain:
 
 <p align="center">Vehicle Interface</p>
 
-~~~
+~~~java
 interface Vehicle {
      
     // all are the abstract methods.
@@ -141,7 +143,7 @@ interface Vehicle {
 
 <p align="center">Vehicle Bicycle Class</p>
 
-```
+```java
 class Bicycle implements Vehicle{
      
     int speed;
@@ -278,7 +280,8 @@ Bean is ready to use
 ### 8. How are you going to create an ApplicationContext in an Integration test? 
 
 Add Spring test dependency:
-```
+
+```xml
 <dependency>
     <groupId>org.springframework</groupId>
     <artifactId>spring-test</artifactId>
@@ -288,7 +291,8 @@ Add Spring test dependency:
 ```
 
 Add Spring Runner to the test class:
-```
+
+```java
 @RunWith(SpringRunner.class)
 public class ServiceTest {
     // ...
@@ -296,7 +300,8 @@ public class ServiceTest {
 ```
 
 Add Context Configuration to the test class
-```
+
+```java
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = AppConfig.class) 
 public class ServiceTest {
@@ -333,23 +338,23 @@ When using DI with Java configuration, you need to explicitly define all of your
 
 Example:
 
-```
+```java
 @Configuration
 public class AppConfiguration {
 
     @Bean
     @Autowired
-    public class bean1(Bean2 bean2, Bean3 bean3){
-        return new Bean1(bean2, bean3);
+    public Bean1 bean1(Bean2 bean2, Bean3 bean3){
+        return  Bean1(bean2, bean3);
     }
     
     @Bean
-    public class bean2(){
+    public Bean2 bean2(){
         return new Bean2();
     }
     
     @Bean
-    public class bean3(){
+    public Bean3 bean3(){
         return new Bean3();
     }
 }
@@ -360,37 +365,37 @@ public class AppConfiguration {
 
 Create classes annotated with the @Component annotation:
 
-```
+```java
 @Component
 public class SpringBeanOne {}
 ```
-```
+```java
 @Component
 public class SpringBeanTwo {}
 ```
-```
+```java
 @Component
 public class SpringBeanThree {}
 ```
 <br> 
 Define dependencies when required:
 
-```
+```java
 @Component
 public class SpringBeanOne {
 
     @Autowired
-    public SpringBeanTwo springBeanTwo
+    public SpringBeanTwo springBeanTwo;
     
     @Autowired
-    public SpringBeanThree springBeanThree
+    public SpringBeanThree springBeanThree;
 }
 ```
 <br>
 
 Create configuration with Component Scanning enabled:
 
-```
+```java
 @ComponentScan
 public class ApplicationConfiguration {}
 ```
@@ -408,7 +413,8 @@ public class ApplicationConfiguration {
 ```
 
 Advanced Component Scanning rules:
-```
+
+```java
 @ComponentScan(
         basePackages = "com.spring.professional.exam.tutorial.module01.question10.annotations.beans",
         //basePackageClasses = SpringBean1.class,
@@ -445,7 +451,8 @@ Meta-annotations are annotations that can be used to create new annotations.
 Example:
 
 @RestController annotation is using @Controller
-```
+
+```java
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
@@ -494,11 +501,13 @@ And there is one exception of this rule. If you have a Singleton bean that has a
 
 
 1) **You can change the default behavior for all beans by @ComponentScan annotation**
-```
+
+```java
 @ComponentScan(lazyInit = true)
 @Configuration
 public class AppConfig {}
 ```
+
 - Setting lazyInit to true, will make all beans lazy, even Singleton Beans
 - Setting lazyInit to false (default), will create Singleton Beans Eagerly and Prototype Beans Lazily
 
@@ -518,18 +527,18 @@ public class AppConfig {}
 
    - Classes annotated with @Component – makes bean Lazy or as specified by @Lazy parameter. Setting @Lazy to Prototype scope beans doesn't make sense, because prototypes are lazy by default.
    
-   ```
+   ```java
    @Componet
    @Lazy
    public class SpringBean(){
       public SpringBean(){
-         System.ou.println("Creating " + getClass().getSimpleName() + " - Lazy Singleton Bean";
+         System.ou.println("Creating " + getClass().getSimpleName() + " - Lazy Singleton Bean");
       }
    }
    ```
    - Classes annotated with @Configuration annotation – make all beans provided by configuration lazy or as specified by @Lazy parameter
    
-   ```
+   ```java
    @Configuration
    @Lazy
    public class ApplicationConfig(){
@@ -546,7 +555,7 @@ public class AppConfig {}
    
    - The method annotated with @Bean annotation – makes bean created by method Lazy or as specified by @Lazy parameter
 
-   ```
+   ```java
    @Configuration
    public class ApplicationConfig(){
    
@@ -561,7 +570,7 @@ public class AppConfig {}
       }
    }
    ```
-      ```
+   ```java
    @Configuration
    @Lazy
    public class ApplicationConfig(){
@@ -578,6 +587,65 @@ public class AppConfig {}
    }
    ```
 ***
+
+
+
+
+### 12. What is a property source? How to use @PropertySource?
+
+PropertySource is Spring Abstraction on Environment Key-Value pairs, which can come from:
+
+- JVM Properties
+- System Environmental Variables
+- JNDI Properties
+- Servlet Parameters
+- Properties File Located on Filesystem
+- Properties File Located on Classpath
+
+It is a good way to access all of the properties with the usage of the same mechanism without having to distinguish whether this property is coming from JVM or from the system.
+
+Remember that, JVM Properties, System Environmental Variables, JNDI Properties, Servlet Parameters are already read for you.
+
+You read properties with the usage of @PropertySource or @PropertySources annotation:
+
+```java
+@ComponentScan
+@PropertySources({
+   @PropertySource("file: ${app-home}/app-db.properties"),
+   @PropertySource("classPath: app-defaults/.properties")
+})
+public class AppConfig{
+}
+```
+
+You access properties with the usage of @Value annotation:
+
+```java
+@Component
+public class SpringBeanOne{
+
+   @Value("db.host")
+   private String dbHost;
+   
+   @Value("app.envId")
+   private String appEnvId;
+   
+   @Value("external.service")
+   private String externalService;
+   
+   @Value("JAVA_HOME") // Defined at system level
+   private String javaHome;
+   
+   public void printProps() {
+   }
+   
+}
+```
+
+***
+
+<br>
+<br>
 
 ### 19. What is a proxy object and what are the two different types of proxy objects Spring can create? What are the limitations of these two types of proxies? What is the power of a proxy object and what are the disadvantages? 
 
