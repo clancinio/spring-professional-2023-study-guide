@@ -644,6 +644,64 @@ public class SpringBeanOne{
 
 ***
 
+
+### 13. What is a BeanFactoryPostProcessor and PropertySourcesPlaceholderConfigurer?
+
+#### What is a BeanFactoryPostProcessor and what is it used for?
+
+BeanFactoryPostProcessor is an interface that contains single method postProcessBeanFactory, implementing it allows you to create logic that will modify Spring Bean Metadata before any Bean is created. BeanFactoryPostProcessor does not create any beans, however, it can access and alter Metadata that is used later to create Beans.
+
+#### When is BeanFactoryPostProcessor invoked?
+
+
+BeanFactoryPostProcessor is invoked after Spring will read or discover Bean Definitions, but before any Spring Bean is created.
+
+#### Why would you define a static @Bean method?
+
+Because BeanFactoryPostProcessor is also a Spring Bean, but a special kind of Bean that should be invoked before other types of beans get created, Spring needs to have the ability to create it before any other beans. This is why BeanFactoryPostProcessors needs to be registered from a static method level.
+
+**Let's look in the code!**
+
+Here we have CustomBeanFactoryPostProcessor and it implements BeanFactoryPostProcessor. The method _postProcessBeanFactory_ prints out the beans in the package.
+
+```java
+public class CustomBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        stream(beanFactory.getBeanDefinitionNames())
+                .map(beanFactory::getBeanDefinition)
+                .filter(beanDefinition -> beanClassNameContains(beanDefinition, "module01.question13.beans"))
+                .map(BeanDefinition::getBeanClassName)
+                .forEach(System.out::println);
+    }
+
+    private boolean beanClassNameContains(BeanDefinition beanDefinition, String subString) {
+        return beanDefinition.getBeanClassName() != null && beanDefinition.getBeanClassName().contains(subString);
+    }
+}
+```
+<br>
+
+To register this class, we are utilizing the application configuration with a static method annotated with @Bean, which instructs Spring to create the bean before any other bean:
+
+```java
+@ComponentScan
+@PropertySource("classpath:/app-defaults.properties")
+public class ApplicationConfiguration {
+   @Bean
+   public static CustomBeanFactoryPostProcessor customerBeanFactoryPostProcessor() {
+      return new CustomBeanFactoryPostProcessor();
+   }
+}
+```
+<br>
+
+#### What is a PropertySourcesPlaceholderConfigurer used for?
+
+Spring has already implemented `PropertySourcesPlaceholderConfigurer` as a `BeanFactoryPostProcessor`. This class is called before any object creation and its purpose is to resolve property placeholders in Spring Beans that are annotated with `@Value("${property_name}").`
+
+***
+
 <br>
 <br>
 
