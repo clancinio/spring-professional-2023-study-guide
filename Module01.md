@@ -586,10 +586,10 @@ public class AppConfig {}
       }
    }
    ```
+
+_Source: https://www.udemy.com/course/spring-certified-tutorial/_
+
 ***
-
-
-
 
 ### 12. What is a property source? How to use @PropertySource?
 
@@ -641,9 +641,9 @@ public class SpringBeanOne{
    
 }
 ```
+_Source: https://www.udemy.com/course/spring-certified-tutorial/_
 
 ***
-
 
 ### 13. What is a BeanFactoryPostProcessor and PropertySourcesPlaceholderConfigurer?
 
@@ -700,6 +700,228 @@ public class ApplicationConfiguration {
 
 Spring has already implemented `PropertySourcesPlaceholderConfigurer` as a `BeanFactoryPostProcessor`. This class is called before any object creation and its purpose is to resolve property placeholders in Spring Beans that are annotated with `@Value("${property_name}").`
 
+_Source: https://www.udemy.com/course/spring-certified-tutorial/_
+
+***
+
+### 14. What is a BeanPostProcessor and how is it different to a BeanFactoryPostProcessor? What do they do?
+
+###### What is a BeanPostProcessor?
+
+BeanPostProcessor is an interface that allows you to create extensions to Spring Framework that will modify Spring Beans objects during initialization. This interface contains two methods:
+- `postProcessBeforeInitialization`
+- `postProcessAfterInitialization`
+
+Implementing those methods allows you to modify created and assembled bean objects or even switch object that will represent the bean.
+
+
+######  How is it different from a BeanFactoryPostProcessor?
+
+The main difference compared to BeanFactoryPostProcessor is that BeanFactoryPostProcessor works with Bean Definitions while BeanPostProcessor works with Bean Objects.
+
+And it also important to remember that when methods of BeanPostProcessor will get called, you have bean object is already created and also it is assembled. That means that all of the properties and all of the dependencies are already set.
+
+###### What do they do? When are they called?
+
+BeanFactoryPostProcessor and BeanPostProcessor in Spring Container Lifecycle:
+
+1. Beans Definitions are created based on Spring Bean Configuration
+
+2. `BeanFactoryPostProcessors` are invoked
+
+3. Instance of Bean is Created
+
+4. Properties and Dependencies are set
+
+5. `BeanPostProcessor::postProcessBeforeInitialization` gets called
+
+6. @PostConstruct method gets called
+
+7. `InitializingBean::afterPropertiesSet` method gets called
+
+8. `@Bean(initMethod) `method gets called
+
+9. `BeanPostProcessor::postProcessAfterInitialization` gets called
+
+The recommended way to define BeanPostProcessor is through static @Bean method in Application Configuration. This is because BeanPostProcessor should be created early before other Beans Objects are ready.
+
+```java
+@ComponentScan
+public class ApplicationConfiguration {
+  
+    @Bean
+    public static CustomBeanPostProcessor customBeanPostProcessor() {
+        return new CustomBeanPostProcessor();
+    }
+    
+    // Other Beans ...
+}
+
+```
+It is also possible to create BeanPostProcessor through regular registration in Application Configuration or through Component Scanning and @Component annotation, however, because in that case bean can be created late in processes, recommended way is options provided above.
+
+Here is a CustomBeanPostProcessor and it doesn't modify any bean, just print out their names. But it is possible to modify the bean object here.
+
+As you can see bean object is passed into each method and returned. That means that I cannot only change this bean but also I can switch it or create a proxy object for this bean.
+
+###### What is an initialization method and how is it declared on a Spring bean?
+
+**Initialization method** is a method that you can write for Spring Bean if you need to perform some initialization code that depends on properties and/or dependencies injected into Spring Bean.
+
+_You might be thinking about why we cannot put this one in the constructor? The answer for this is that when constructor would get called, there is no guarantee that all of the dependencies will be already set up. This is might be the case when we are using private field injection or property injection through the setter instead of using constructor injection._
+
+You can declare the Initialization method in three ways:
+
+- Create a method in Spring Bean annotated with `@PostConstruct`:
+
+```java
+public class SpringBean1 {
+
+    @PostConstruct
+    public void postConstruct() {
+        System.out.println(getClass().getSimpleName() + "::postConstruct");
+    }
+}
+```
+Implement `InitializingBean::afterPropertiesSet`:
+
+```java
+public class SpringBean1 implements InitializingBean {
+
+   @Override
+   public void afterPropertiesSet() throws Exception {
+      System.out.println(getClass().getSimpleName() + "::afterPropertiesSet");
+   }
+}
+```
+Create Bean in Configuration class with @Bean method and use @Bean(initMethod)
+
+```java
+public class SpringBean1 {
+
+   public void initMethod() {
+      System.out.println(getClass().getSimpleName() + "::initMethod");
+   }
+}
+```
+
+```java
+@ComponentScan
+public class ApplicationConfiguration {
+  
+   @Bean
+   public static CustomBeanPostProcessor customBeanPostProcessor() {
+      return new CustomBeanPostProcessor();
+   }
+
+   @Bean(initMethod = "initMethod")
+   public SpringBean1 springBean1() {
+      return new SpringBean1();
+   }
+}
+```
+
+###### What is a destroy method, how is it declared?
+
+**Destroy method** is a method in Spring Bean that you can use to implement any cleanup logic for resources used by the Bean. The method will be called when Spring Bean will be taken out of use, this is usually happening when the Spring Context is closed.
+
+_Let's say that you have a bean and it keeps a state. Inside of the bean you are keeping connections to the database. When the application is stopped and the Spring context is getting closed you would most probably like to close all of those DB connections. So this is a great place to implement this logic._
+
+You can declare destroy method in the following ways:
+
+- Create method annotated with `@PreDestroy` annotation
+
+```java
+public class SpringBean2 {
+
+    @PreDestroy
+    public void preDestroy() {
+        System.out.println(getClass().getSimpleName() + "::preDestroy");
+    }
+}
+```
+
+- Implement `DisposableBean::destroy`:
+
+```java
+public class SpringBean2 implements DisposableBean {
+  
+   @Override
+   public void destroy() throws Exception {
+      System.out.println(getClass().getSimpleName() + "::destroy");
+   }
+}
+```
+- Create Bean in Configuration class with `@Bean` method and use `@Bean(destroyMethod)`
+
+```java
+public class SpringBean2 implements DisposableBean {
+  
+    public void destroyMethod() {
+        System.out.println(getClass().getSimpleName() + "::destroyMethod");
+    }
+}
+```
+
+```java
+@ComponentScan
+public class ApplicationConfiguration {
+  
+    @Bean
+    public static CustomBeanPostProcessor customBeanPostProcessor() {
+        return new CustomBeanPostProcessor();
+    }
+
+    @Bean(initMethod = "initMethod")
+    public SpringBean1 springBean1() {
+        return new SpringBean1();
+    }
+
+    @Bean(destroyMethod = "destroyMethod")
+    public SpringBean2 springBean2() {
+        return new SpringBean2();
+    }
+}
+```
+<br>
+
+###### Consider how you enable JSR-250 annotations like @PostConstruct and @PreDestroy?
+
+When using AnnotationConfigApplicationContext support for @PostConstruct and @PreDestroy is added automatically.
+
+Those annotations are handled by CommonAnnotationBeanPostProcessor with is automatically registered by AnnotationConfigApplicationContext.
+
+**When/how will they (initialization, destroy methods) get called?**
+
+**Context is Created:**
+
+1. Beans Definitions are created based on Spring Bean Configuration
+
+2. BeanFactoryPostProcessors are invoked
+
+**Bean is Created:**
+
+1. Instance of Bean is Created
+
+2. Properties and Dependencies are set
+
+3. `BeanPostProcessor::postProcessBeforeInitialization` gets called
+
+4. `@PostConstruct` method gets called
+
+5. `InitializingBean::afterPropertiesSet` method gets called
+
+6. `@Bean(initMethod)` method gets called
+
+7. `BeanPostProcessor::postProcessAfterInitialization` gets called
+
+**Bean is Ready to use**
+
+Bean is Destroyed (usually when the context is closed):
+
+1. `@PreDestroy` method gets called
+2. `DisposableBean::destroy` method gets called
+3. `@Bean(destroyMethod)` method gets called
 ***
 
 <br>
