@@ -922,8 +922,285 @@ Bean is Destroyed (usually when the context is closed):
 1. `@PreDestroy` method gets called
 2. `DisposableBean::destroy` method gets called
 3. `@Bean(destroyMethod)` method gets called
+
+
 ***
 
+### 15. What does component-scanning do?
+
+#### Component Scanning
+
+Process in which Spring is scanning Classpath in search for classes annotated with stereotypes annotations (@Component, @Repository, @Service, @Controller, …) and based on those creates beans definitions.
+
+**Simple component scanning** within Configuration package and all sub-packages:
+```java
+@ComponentScan
+public class ApplicationConfiguration {
+}
+```
+**Advanced Component Scanning** Rules:
+```java
+@ComponentScan(
+        basePackages = "com.spring.professional.exam.tutorial.module01.question15.advanced.beans",
+        includeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*Bean"),
+        excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*(Controller|Service).*")
+)
+public class ApplicationConfiguration {
+}
+```
+In the above example, component scanning will search for beans in the package. And beans with the name ends with "Bean" will be included. And beans that contain "Controller" or "Service" in their names will be excluded.
+
+
+***
+
+### 16. What is the behaviour of the annotation @Autowired?
+
+What is the `@Autowired `annotation?
+
+`@Autowired` is an annotation that is processed by AutowiredAnnotationBeanPostProcessor, which can be put onto class constructor, field, setter method or config method. Using this annotation enables automatic Spring Dependency Resolution that is primarily based on types.
+
+`@Autowired `has a property required which can be used to tell Spring if dependency is required or optional. By default, the dependency is required. If @Autowired with required dependency is used on top of constructor or method that contains multiple arguments, then all arguments are considered required dependency unless the argument is of type Optional, is marked as @Nullable, or is marked as @Autowired(required = false).
+
+If _@Autowired_ is used on top of Collection or Map then Spring will inject all beans matching the type into Collection and key-value pairs as BeanName-Bean into Map. Order of elements depends on the usage of @Order, @Priority annotations and implementation of Ordered interface.
+
+**@Autowired uses the following steps when resolving dependency:**
+
+- Match exactly by type, if only one found, finish
+
+- If multiple beans of the same type found, check if any contains @Primary annotation, if yes, inject @Primary bean and finish
+
+- If no exactly one match exists, check if @Qualifier exists for the field, if yes use @Qualifier to find matching bean
+
+- If still no exactly one bean found, narrow the search by using a bean name
+
+- If still no exactly one bean found, throw an exception (NoSuchBeanDefinitionException, NoUniqueBeanDefinitionException, …)
+
+<br> 
+
+###### @Autowired with field injection
+
+```java
+@Service
+public class RecordsService01 {
+
+   @Autowired
+   public DbRecordsReader recordsReader;
+
+   @Autowired
+   protected DbRecordsBackup recordsBackup;
+
+   @Autowired
+   private DbRecordsProcessor recordsProcessor;
+
+   @Autowired
+   DbRecordsWriter recordsWriter;
+
+   @Autowired
+   private Optional<RecordsHash> recordsHash;
+
+   @Autowired
+   @Nullable
+   private RecordsUtil recordsUtil;
+
+   @Autowired(required = false)
+   private RecordsValidator recordsValidator;
+
+   //...
+}
+```
+
+- Autowired fields can have any visibility level
+- The injection is happening after Bean is created but before any init method (@PostConstruct, InitializingBean, @Bean(initMethod)) is called
+- By default field is required, however, you can use Optional, @Nullable or @Autowired(required = false) to indicate that field is not required.
+
+
+After running this example, some of the beans are empty. This is because those are marked as Optional
+
+```
+RecordsService01 recordsHash = Optional.empty
+RecordsService01 recordsUtil = null
+RecordsService01 recordsValidator = null
+```
+<br>
+
+###### @Autowired with constructor
+
+The constructor can have any access modifier (public, protected, private, package-private).
+
+If there is only one constructor in a class, there is no need to use `@Autowired` on top of it, Spring will use this default constructor anyway and will inject dependencies into it.
+
+If a class defines multiple constructors, then you are obligated to use `@Autowired `to tell Spring which constructor should be used to create Spring Bean. If you will have a class with multiple constructors without any of constructor marked as `@Autowired` then Spring will throw `NoSuchMethodException`.
+
+By default all arguments in constructor are required, however, you can use `Optional`, `@Nullable` or `@Autowired(required = false)` to indicate that parameter is not required.
+
+```java
+@Service
+public class RecordsService02 {
+   public RecordsService02(DbRecordsReader recordsReader, DbRecordsBackup recordsBackup, DbRecordsProcessor recordsProcessor, DbRecordsWriter recordsWriter) {
+      System.out.println(
+              getClass().getSimpleName() + " recordsReader = " + recordsReader + "\n" +
+                      getClass().getSimpleName() + " recordsBackup = " + recordsBackup + "\n" +
+                      getClass().getSimpleName() + " recordsProcessor = " + recordsProcessor + "\n" +
+                      getClass().getSimpleName() + " recordsWriter = " + recordsWriter + "\n"
+      );
+   }
+}
+```
+
+In this example, there is only one constructor. And there is no need to use `@Autowired`. Spring already knows which dependencies need to be injected. All dependencies will be resolved.
+
+In the next example, one of the constructors is annotated with `@Autowired`. And the bean will be created correctly.
+
+Also, some of the dependencies marked as Optional and they will be empty or null. But constructor will be still called correctly.
+
+```java
+@Service
+public class RecordsService03 {
+
+   @Autowired
+   private RecordsService03(DbRecordsReader recordsReader, DbRecordsProcessor recordsProcessor, Optional<RecordsUtil> recordsUtil, @Nullable RecordsHash recordsHash, @Autowired(required = false) RecordsValidator recordsValidator) {
+      System.out.println(
+              getClass().getSimpleName() + " recordsReader = " + recordsReader + "\n" +
+                      getClass().getSimpleName() + " recordsProcessor = " + recordsProcessor + "\n" +
+                      getClass().getSimpleName() + " recordsUtil = " + recordsUtil + "\n" +
+                      getClass().getSimpleName() + " recordsHash = " + recordsHash + "\n" +
+                      getClass().getSimpleName() + " recordsValidator = " + recordsValidator + "\n"
+      );
+   }
+
+   //@Autowired
+   RecordsService03(DbRecordsReader recordsReader, DbRecordsProcessor recordsProcessor) {
+      System.out.println(
+              getClass().getSimpleName() + " recordsReader = " + recordsReader + "\n" +
+                      getClass().getSimpleName() + " recordsProcessor = " + recordsProcessor + "\n"
+      );
+   }
+}
+```
+<br>
+
+###### @Autowired with the method injection
+
+```java
+@Service
+public class RecordsService04 {
+
+   @Autowired
+   public void setRecordsReader(DbRecordsReader recordsReader) {
+      System.out.println(
+              getClass().getSimpleName() + " setRecordsReader:\n" +
+                      "\trecordsReader = " + recordsReader + "\n"
+      );
+   }
+   
+   // ...
+}
+```
+
+`@Autowired` method can have any visibility level and also can contain multiple parameters.
+
+If the method contains multiple parameters, then by default it is assumed that in `@Autowired `method all parameters are required. If Spring will be unable to resolve all dependencies for this method, `NoSuchBeanDefinitionException` or `NoUniqueBeanDefinitionException` will be thrown.
+
+When using `@Autowired(required = false) `with the method, it will be invoked only if Spring can resolve all parameters.
+
+```java
+@Autowired(required = false)
+public void setRecordsReaderAndRecordsValidator(DbRecordsReader recordsReader, RecordsValidator recordsValidator){
+        System.out.println(
+        getClass().getSimpleName()+" setRecordsReaderAndRecordsValidator:\n"+
+        "\trecordsReader = "+recordsReader+"\n"+
+        "\trecordsValidator = "+recordsValidator+"\n"
+        );
+}
+```
+
+If you want Spring to invoke method only with arguments partially resolved, you need to use @Autowired method with parameter marked as Optional, @Nullable or `@Autowired(required = false)` to indicate that this parameter is not required.
+
+```java
+@Autowired
+public void setRecordsReaderAndRecordsValidator(DbRecordsReader recordsReader, @Nullable RecordsValidator recordsValidator) {
+        System.out.println(
+        getClass().getSimpleName() + " setRecordsReaderAndRecordsValidator:\n" +
+        "\trecordsReader = " + recordsReader + "\n" +
+        "\trecordsValidator = " + recordsValidator + "\n"
+        );
+        }
+```
+<br>
+
+###### @Autowired with Collections
+
+RecordsReader is an interface that is implemented by 4 classes. And we can inject all of these Beans into a List.
+
+```java
+@Service
+public class RecordsService05 {
+
+    @Autowired
+    public void setRecordsReaders(List<RecordsReader> recordsReaders) {
+        System.out.println(getClass().getSimpleName() + " setRecordsReaders:");
+        recordsReaders.stream()
+                .map(r -> "\t" + r.getClass().getSimpleName())
+                .forEach(System.out::println);
+    }
+}
+```
+
+After running this example, we can see the next output:
+
+```
+RecordsService05 setRecordsReaders:
+   SocketRecordsReader
+   WebServiceRecordsReader
+   FileRecordsReader
+   DbRecordsReader
+```
+
+Because Spring injects all beans with a type of RecordReader to list. And the order is not random. It is dependent on the implementation of the components by annotations `@Order`, `@Priority` and Ordered interface.
+
+```java
+@Component
+@Order(1)
+public class SocketRecordsReader implements RecordsReader {
+    @Override
+    public Collection<Record> readRecords() {
+        return null;
+    }
+}
+```
+```java
+@Component
+@Priority(2)
+public class WebServiceRecordsReader implements RecordsReader {
+    @Override
+    public Collection<Record> readRecords() {
+        return null;
+    }
+}
+```
+```java
+@Component
+public class FileRecordsReader implements RecordsReader, Ordered {
+    @Override
+    public Collection<Record> readRecords() {
+        return null;
+    }
+
+    @Override
+    public int getOrder() {
+        return 3;
+    }
+}
+```
+```java
+@Component
+public class DbRecordsReader implements RecordsReader {
+    @Override
+    public Collection<Record> readRecords() {
+        return Collections.emptyList();
+    }
+}
+```
 <br>
 <br>
 
