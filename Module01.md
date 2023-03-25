@@ -1120,11 +1120,11 @@ If you want Spring to invoke method only with arguments partially resolved, you 
 @Autowired
 public void setRecordsReaderAndRecordsValidator(DbRecordsReader recordsReader, @Nullable RecordsValidator recordsValidator) {
         System.out.println(
-        getClass().getSimpleName() + " setRecordsReaderAndRecordsValidator:\n" +
-        "\trecordsReader = " + recordsReader + "\n" +
-        "\trecordsValidator = " + recordsValidator + "\n"
+          getClass().getSimpleName() + " setRecordsReaderAndRecordsValidator:\n" +
+          "\trecordsReader = " + recordsReader + "\n" +
+          "\trecordsValidator = " + recordsValidator + "\n"
         );
-        }
+}
 ```
 <br>
 
@@ -1201,6 +1201,81 @@ public class DbRecordsReader implements RecordsReader {
     }
 }
 ```
+
+***
+
+### 17. What do you need to do if you would like to inject something into a private field? How does this impact testing?
+
+So to inject something into the private field you can do two things.
+
+#### Injection of dependency into the private field with @Autowired
+
+```java
+@Autowired
+private ReportWriter reportWriter;
+```
+
+In this example, the challenge with the testing is that if you have a private field then you cannot modify it. The issue is that we cannot inject the mock since we do not have access to it.
+
+#### Injection of property into the private field with @Value
+
+```java
+@Autowired
+private ReportWriter reportWriter;
+```
+In the second example, we have a property with private fieild and we don't have control over it from the test level.
+
+#### How to access the private field in testing?
+
+Private Field cannot be accessed from outside of the class, to resolve this when writing Unit Test you can use the following solutions:
+
+- Use SpringRunner with ContextConfiguration and @MockBean. This will create a context with production code.
+- Use ReflectionTestUtils to modify private fields
+- Use MockitoJUnitRunner to inject mocks. And Mockito will automatically find a way to inject the fields based on the types.
+- Use @TestPropertySource to inject test properties into private fields
+
+Now let's go into the code.
+
+For example, we have the `ReportService` and it has simple responsibility. It creates a report and then passes the report to `ReportWriter`. `ReportWriter` has only one method write(). So `ReportWriter` is a dependency and it comes from outside.
+
+```java
+@Component
+public class ReportService {
+
+    @Autowired
+    private ReportWriter reportWriter;
+    @Value("${report.global.name}")
+    private String reportGlobalName;
+
+    public void execute() {
+        Report report = new Report();
+
+        // ...
+
+        reportWriter.write(report, reportGlobalName);
+    }
+}
+```
+And also we have a property that is called reportGlobalName. It will be injected based on the property defined in the resources.
+
+```properties
+report.global.name=Test_Report_02 
+```
+
+And now we want to test this service. The challenge is the private field. We don't have access to it. And here spring-boot-test or spring-test modules will help us.
+
+```
+<dependency>
+   <groupId>org.springframework</groupId>
+   <artifactId>spring-test</artifactId>
+</dependency>
+<dependency>
+   <groupId>org.springframework.boot</groupId>
+   <artifactId>spring-boot-test</artifactId>
+</dependency>
+```
+
+
 <br>
 <br>
 
