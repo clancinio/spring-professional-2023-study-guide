@@ -60,6 +60,7 @@ public class Chef {
     }
 }
 ```
+<br>
 
 ***
 
@@ -88,6 +89,8 @@ Examples of anti-patterns in OOP:
 - Sequential coupling
 
 Dependency injection is a pattern that solves the problem of flexible dependency creation.
+
+<br>
 
 ***
 
@@ -178,6 +181,9 @@ class Bicycle implements Vehicle{
 ```
 
 _Source: https://www.geeksforgeeks.org/interfaces-in-java/_
+
+<br>
+
 ***
 
 ### 4. What is meant by "application-context"?
@@ -224,6 +230,8 @@ The Spring container is the core of Spring Framework. The container is used for 
 - Spring context is closed
 - Destruction callbacks are invoked
 
+<br>
+
 ***
 
 ### 6. How are you going to create a new instance of an ApplicationContext?
@@ -246,6 +254,7 @@ Spring Boot:
 - SpringBootApplication - Embedded Tomcat
 
 
+<br>
 
 ***
 
@@ -327,6 +336,8 @@ Spring Boot:
 - Application Context will automatically be closed 
 - Shutdown hook will automatically be registered 
 - ContextLoaderListener applies to Spring Boot Web Application as well 
+
+<br>
 
 ***
 
@@ -482,6 +493,7 @@ String value() default "";
 
 _Source: https://www.udemy.com/course/spring-certified-tutorial/_
 
+<br>
 
 ***
 
@@ -588,6 +600,8 @@ public class AppConfig {}
    ```
 
 _Source: https://www.udemy.com/course/spring-certified-tutorial/_
+
+<br>
 
 ***
 
@@ -701,6 +715,8 @@ public class ApplicationConfiguration {
 Spring has already implemented `PropertySourcesPlaceholderConfigurer` as a `BeanFactoryPostProcessor`. This class is called before any object creation and its purpose is to resolve property placeholders in Spring Beans that are annotated with `@Value("${property_name}").`
 
 _Source: https://www.udemy.com/course/spring-certified-tutorial/_
+
+<br>
 
 ***
 
@@ -950,6 +966,7 @@ public class ApplicationConfiguration {
 ```
 In the above example, component scanning will search for beans in the package. And beans with the name ends with "Bean" will be included. And beans that contain "Controller" or "Service" in their names will be excluded.
 
+<br>
 
 ***
 
@@ -1201,6 +1218,7 @@ public class DbRecordsReader implements RecordsReader {
     }
 }
 ```
+<br>
 
 ***
 
@@ -1264,7 +1282,7 @@ report.global.name=Test_Report_02
 
 And now we want to test this service. The challenge is the private field. We don't have access to it. And here spring-boot-test or spring-test modules will help us.
 
-```
+```xml
 <dependency>
    <groupId>org.springframework</groupId>
    <artifactId>spring-test</artifactId>
