@@ -1293,6 +1293,103 @@ And now we want to test this service. The challenge is the private field. We don
 </dependency>
 ```
 
+We can use `@RunWith(SpringRunner.class)` to create a context from the production code. And then instead of creating real dependency, we will inject the mock bean of ReportWriter.
+
+```java
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = ApplicationConfig.class)
+public class ReportServiceTest01 {
+    @Autowired
+    private ReportService reportService;
+    @MockBean
+    private ReportWriter reportWriter;
+
+    @Test
+    public void shouldPassReportToWriter() {
+        reportService.execute();
+
+        verify(reportWriter).write(any(Report.class), any());
+    }
+}
+```
+The next solution to this problem is to use Mockito Runner `@RunWith(MockitoJUnitRunner.class)`. Mockito doesn't create an instance of the Spring Context so it is a bit lighter. And also Mockito will inject mocks automatically based on the type.
+
+```java
+@RunWith(MockitoJUnitRunner.class)
+public class ReportServiceTest02 {
+    @InjectMocks
+    private ReportService reportService;
+    @Mock
+    private ReportWriter reportWriter;
+
+    @Test
+    public void shouldPassReportToWriter() {
+        reportService.execute();
+
+        verify(reportWriter).write(any(Report.class), any());
+    }
+}
+```
+
+The third solution is to use `ReflectionTestUtils`. We create a `ReportService` and create a mock of `ReportWriter`. And then we set a field on this `ReportService`. That means we need to pass the name of the field to the mock that we have created.
+
+But the issue with this test is that if somebody will modify the field in the `ReportService` class then this test will fail. When other solutions will work as expected.
+
+```java
+public class ReportServiceTest03 {
+    private ReportService reportService;
+
+    @Before
+    public void setUp() {
+        reportService = new ReportService();
+    }
+
+    @Test
+    public void shouldPassReportToWriter() {
+        ReportWriter reportWriter = Mockito.mock(ReportWriter.class);
+        ReflectionTestUtils.setField(reportService, ReportService.class, "reportWriter", reportWriter, ReportWriter.class);
+
+        reportService.execute();
+
+        verify(reportWriter).write(any(Report.class), any());
+    }
+}
+```
+<br>
+
+###### How to test the property field?
+
+For the test of the property, the Spring Test module provides us with the `@TestPropertySource.`
+
+In my case, I am just setting the `report.global.name` to something that is coming from my test.
+
+```java
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = ApplicationConfig.class)
+@TestPropertySource(properties = "report.global.name=" + REPORT_NAME)
+public class ReportServiceTest04 {
+    static final String REPORT_NAME = "Mock_Report";
+
+    @Autowired
+    private ReportService reportService;
+    @MockBean
+    private ReportWriter reportWriter;
+
+    @Test
+    public void shouldPassReportToWriter() {
+        reportService.execute();
+
+        verify(reportWriter).write(any(Report.class), eq(REPORT_NAME));
+    }
+}
+````
+
+<br>
+
+***
+
+### 18. How does the @Qualifier annotation compliment the use of @Autowired?
+
 
 <br>
 <br>
