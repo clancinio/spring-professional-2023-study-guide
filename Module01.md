@@ -1504,15 +1504,16 @@ public SpringBean3 springBean3B() {
 ```
 Specify if Bean should be used as a candidate for injection into other beans – default true
 ```java
-@Bean
+@Bean(autowireCandidate = false)
 public SpringBean3 springBean3C() {
   return new SpringBean3C();
 }
 ```
 Configure Autowiring mode – by name or type (Deprecated since Spring 5.1)
 ```java
-@Bean
-public MessageDigest messageDigest() {
-  return DigestUtils.getSha384Digest();
-}
+@Bean(name = "springBean3rd", autowire = Autowire.BY_NAME)
+@Autowired
+public SpringBean3 springBean3A(MessageDigest messageDigest) {
+        return new SpringBean3A(messageDigest);
+        }
 ```
