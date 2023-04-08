@@ -1426,6 +1426,8 @@ Proxy Disadvantages:
 
 <br>
 
+***
+
 ### 20. What are the advantages of Java Config? What are the limitations?
 
 ### Advantages of Java Config over XML Config:
@@ -1466,11 +1468,13 @@ Spring does this because if we have a default scope - a singleton. And it will n
 
 <br>
 
+***
+
 ### 21. What does the @Bean annotation do?
 
-@Bean annotation is used in @Configuration class to inform Spring that instance of class returned by method annotated with @Bean will return bean that will be managed by Spring.
+`@Bean` annotation is used in `@Configuration` class to inform Spring that instance of class returned by method annotated with `@Bean` will return bean that will be managed by Spring.
 
-@Bean also allows you to:
+`@Bean` also allows you to:
 
 Specify the init method – will be called after an instance is created and assembled
 ```java
@@ -1516,4 +1520,235 @@ Configure Autowiring mode – by name or type (Deprecated since Spring 5.1)
 public SpringBean3 springBean3A(MessageDigest messageDigest) {
         return new SpringBean3A(messageDigest);
         }
+```
+
+<br>
+
+***
+
+### 22. What is the default bean id if you only use @Bean? How can you override this?
+
+When using `@Bean` without specifying name or alias, the default bean ID will be created based on the name of the method which was annotated with `@Bean` annotation.
+
+```java
+@Configuration
+public class ApplicationConfig {
+    
+    @Bean
+    public SpringBean1 springBean1() {
+        return new SpringBean1();
+    }
+}
+```
+You can override this behaviour by specifying name or aliases for the bean. Alias is always the second name of the bean. The first name will become the ID.
+
+```java
+@Configuration
+public class ApplicationConfig {
+  
+    @Bean(name = "2ndSpringBean")
+    public SpringBean2 springBean2() {
+        return new SpringBean2();
+    }
+
+    @Bean(name = {"3rdSpringBean", "thirdSpringBean"})
+    public SpringBean3 springBean3() {
+        return new SpringBean3();
+    }
+}
+```
+
+<br>
+
+***
+
+### 23. Why are you not allowed to annotate a final class with @Configuration? Why can’t @Bean methods be final either?
+
+A class annotated with `@Configuration` cannot be final because Spring will use CGLIB to create a proxy for `@Configuration` class. CGLIB creates subclass for each class that is supposed to be proxied, however since the final class cannot have subclass CGLIB will fail. This is also a reason why methods cannot be final, Spring needs to override methods from parent class for the proxy to work correctly, however, final method cannot be overridden, having such a method will make CGLIB fail.
+
+If `@Configuration` class will be final or will have a final method, Spring will throw BeanDefinitionParsingException.
+
+### How do @Configuration annotated classes support singleton beans?
+
+Spring supports Singleton beans in `@Configuration` class by creating a CGLIB proxy that intercepts calls to the method. Before a method is executed from the proxied class, proxy intercepts a call and checks if the instance of the bean already exists
+
+- If the instance of the bean exists, then call to the method is not allowed and the already existing instance is returned
+- If the instance does not exist, then call is allowed, the bean is created and the instance is returned and saved for future reuse.
+
+To make a method call interception CGLIB proxy needs to create a subclass and also needs to override methods.
+
+The easiest way to observe that calls to original `@Configuration` class are proxied is with the usage of a debugger or by printing stack trace. When looking at stack trace you will notice that class which serves beans is not original class written by you but it is a different class, which name contains `$$EnhancerBySpringCGLIB`.
+
+<br>
+
+***
+
+### 24. What is @Profile annotation?
+
+### How do you configure profiles?
+
+**Spring Profiles are configured by:**
+- Specifying which beans are part of which profile
+- Specifying which profiles are active
+
+**You can specify beans being part of the profile in the following ways:**
+- Use `@Profile` annotation at `@Component` class level – bean will be part of profile/profiles specified in the annotation
+
+```java
+@Component
+@Profile("stg")
+class UserServiceImpl implements User {
+}
+```
+
+- Use `@Profile` annotation at @Configuration class level – all beans from this configuration will be part of profile/profiles specified in the annotation
+
+```java
+@Configuration
+@Profile("str")
+class ApplicationConfig { 
+  
+  @Bean
+  public Bean1 bean1() {
+     return new Bean1();
+  }
+
+   @Bean
+   public Bean2 bean2() {
+      return new Bean2();
+   }
+}
+```
+
+- Use `@Profile` annotation at @Bean method of `@Configuration` class – an instance of bean returned by this method will be part of profile/profiles specified in the annotation
+
+```java
+@Configuration
+class ApplicationConfig { 
+  
+  @Bean
+  @Profile("local")
+  public Bean1 bean1() {
+     return new Bean1();
+  }
+
+  @Bean
+  @Profile("str")
+  public Bean2 bean2() {
+    return new Bean2();
+  }
+}
+```
+- Use `@Profile` annotation to define custom annotation - `@Component` / `@Configuration` / `@Bean` method annotated with custom annotation will be part of profile/profiles specified in the annotation
+
+```java
+@Profile("local")
+public @interface LocalProfile {
+}
+```
+
+_If Bean does not have profile specified in any way, it will be created in every profile. You can use ! to specify which profile bean should not be created._
+
+### How to activate profile?
+
+**You can activate profiles in the following way:**
+
+- Programmatically with the usage of ConfigurableEnvironment
+
+```java
+public class Runner {
+public static void main(String[] args) {
+AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+context.registerShutdownHook();
+
+        // Activate profile
+        context.getEnvironment().setActiveProfiles("file");
+        context.register(ApplicationConfig.class);
+        context.refresh();
+
+        FinancialDataDao financialDataDao = context.getBean(FinancialDataDao.class);
+
+        System.out.println(financialDataDao.getClass().getSimpleName());
+    }
+}
+```
+
+- By using spring.profiles.active property
+
+<br>
+
+***
+
+### 25. Can you use @Bean together with @Profile?
+
+Yes, `@Bean` annotation can be used together with `@Profile` inside class annotated with `@Configuration` annotation on top of the method that returns an instance of the bean.
+
+If a method annotated with `@Bean` does not have `@Profile`, that means that this bean will exist in all profiles.
+
+You can specify one, multiple profiles or profile in which bean should not exists:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public DataMapper dataMapper() {
+        return new DataMapper();
+    }
+
+    @Bean
+    @Profile({"database", "file"})
+    public DataProcessor multiSourceDataProcessor() {
+        return new MultiSourceDataProcessor();
+    }
+
+    @Bean
+    @Profile("database")
+    public DataReader dbDataReader() {
+        return new DbDataReader();
+    }
+
+    @Bean
+    @Profile("file")
+    public DataReader fileDataReader() {
+        return new FileDataReader();
+    }
+
+    @Bean
+    @Profile("!prod")
+    public DataWriter devDataWriter() {
+        return new DevDataWriter();
+    }
+
+    @Bean
+    @Profile("!dev")
+    public DataWriter prodDataWriter() {
+        return new ProdDataWriter();
+    }
+}
+```
+
+<br>
+
+***
+
+### 26. Can you use @Component together with @Profile?
+
+Yes, `@Profile` annotation can be used together with `@Component` on top of the class representing spring bean.
+
+If, class annotated with `@Component` does not have `@Profile`, that beans that this bean will exist in all profiles.
+
+You can specify one, multiple profiles or profile in which bean should not exists:
+
+```java
+@Component
+@Profile({"database", "file"})
+public class MultiSourceDataProcessor implements DataProcessor {
+}
+```
+```java
+@Component
+@Profile("!dev")
+public class DbDataReader implements DataReader {
+}
 ```
