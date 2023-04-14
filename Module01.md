@@ -2192,5 +2192,201 @@ private Map<String, Integer> casesMap;
 - Expressions starting with $ - used to reference a property in Spring Environment Abstraction
 - Expressions starting with # - SpEL expressions parsed and evaluated by SpEL
 
+<br>
+
+***
+
+### 29. What is @Value used for?
+
+**@Value is used for:**
+
+- Setting simple values of Spring Bean Fields, Method Parameters, Constructor Parameters
+- Injecting property/environment values into Spring Bean Fields, Method Parameters, Constructor Parameters. Spring uses abstraction on top of the property and environment values. So you are using one solution to inject all values from properties and environments.
+- Injecting results of SpEL expressions into Spring Bean Fields, Method Parameters, Constructor Parameters
+- Injecting values from other Spring Beans into Spring Bean Fields, Method Parameters, Constructor Parameters
+
+```java
+@Value("#{springBean2.taxId}")
+private int taxId;
+````
+
+- Injecting values into collections (arrays, lists, sets, maps) from literals, property/environment values, other Spring Beans
+- Setting default values of Spring Bean Fields, Method Parameters, Constructor Parameters when referenced value is missing
+
+```java
+@Value("${app.tax.department.name}")
+private String taxDepartmentName;
+
+// Set to defaut valeu "no_name"
+@Value("${app.tax.department.alt.name:no_name}")
+private String taxDepartmentAlternateName;
+```
+
+<br>
+
+***
+
+### 30. What is SpEL?
+
+**Spring Expression Language (SpEL)** is an expression language that allows you to query and manipulate objects graphs during the runtime. SpEL is used in different products across the Spring portfolio.
+
+SpEL can be used independently with the usage of ExpressionParser and EvaluationContext or can be used on top of fields, method parameters, constructor arguments via `@Value` annotation `@Value("#{ … }")`.
+
+```java
+public class Runner1 {
+    public static void main(String[] args) {
+        ExpressionParser parser = new SpelExpressionParser();
+
+        System.out.println(parser.parseExpression("'Hello'.concat(' world!')").getValue());
+        System.out.println(parser.parseExpression("'2 + 2 equals = '.concat(2 + 2)").getValue());
+        System.out.println(parser.parseExpression("new String('Wall Street').toUpperCase()").getValue());
+        System.out.println(parser.parseExpression("24 * 60").getValue());
+        System.out.println(parser.parseExpression("{1, 2, 3}").getValue());
+        System.out.println(parser.parseExpression("{a: 1, b: 2, c: 3}").getValue());
+        System.out.println(Arrays.toString((int[]) parser.parseExpression("new int[]{1, 2, 3}").getValue()));
+        System.out.println(parser.parseExpression("5 < 10").getValue());
+    }
+}
+```
+
+SpEL expressions are usually interpreted during runtime, this is good since it provides a lot of dynamic features. However, in some cases performance is more important than a number of features available, for those cases Spring Framework 4.1 introduced the possibility to compile expressions.
+
+Compilation of Spring Expression is done by creating real Java Class that embodies expression, this results in much faster Expression Evaluation. Because during compilation, reference types of properties are unknown, Compiled Expressions are best to use when types of referenced types are not changing.
+
+**The compiler is turned off by default, you can turn it on by:**
+- Parser Configuration
+- System Property - spring.expression.compiler.mode
+
+**The compiler can operate in three modes (SpelCompilerMode):**
+- Off – default
+- Immediate – compile upon first expression interpretation
+- Mixed – compiler dynamically switched between interpreted and compiled mode, the compiled form is generated after few invocations. If the exception will be thrown during compiled form evaluation, then fallback to interpreted form will occur, and then after few invocations, the compiler will switch to compiled mode again.
+
+```java
+public class Runner3 {
+    public static void main(String[] args) {
+        ExpressionParser parser = new SpelExpressionParser(
+                new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE, Runner3.class.getClassLoader())
+        );
+
+        System.out.println(parser.parseExpression("'Hello'.concat(' world!')").getValue());
+        System.out.println(parser.parseExpression("'2 + 2 equals = '.concat(2 + 2)").getValue());
+        System.out.println(parser.parseExpression("new String('Wall Street').toUpperCase()").getValue());
+    }
+}
+```
+
+**Compiled Mode does not support the following expressions:**
+- Expressions involving assignment
+- Expressions relying on the conversion service
+- Expressions using custom resolvers or accessors
+- Expressions using selection or projection
+
+```java
+public class Runner2 {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ApplicationConfiguration.class);
+        context.registerShutdownHook();
+
+        StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+        evaluationContext.setBeanResolver(new BeanFactoryResolver(context));
+
+        ExpressionParser parser = new SpelExpressionParser();
+
+        System.out.println(
+                parser.parseExpression("@springBean1.streetName").getValue(evaluationContext)
+        );
+        System.out.println(
+                parser.parseExpression("@springBean1.accountBalance + 1000").getValue(evaluationContext)
+        );
+        System.out.println(
+                parser.parseExpression("@springBean1.casesMap.get('caseA')").getValue(evaluationContext)
+        );
+    }
+}
+```
+
+### What can you reference using SpEL?
+
+**You can reference the following using SpEL:**
+
+static field from class - T(com.example.Person).DEFAULT_NAME
+
+static method from class - T(com.example.Person).getDefaultName()
 
 
+**Property values from a properties file:**
+
+```java
+@Value("${my.property}")
+private String myProperty;
+```
+Here, my.property is a property key in a properties file that contains the value you want to inject into the myProperty field.
+
+**System environment variables:**
+
+```java
+@Value("#{systemEnvironment['JAVA_HOME']}")
+private String javaHome;
+```
+
+Here, systemEnvironment['JAVA_HOME'] is a SpEL expression that references the value of the JAVA_HOME environment variable.
+
+**Spring environment variables:**
+
+```java
+@Value("#{environment['spring.profiles.active']}")
+private String activeProfile;
+```
+Here, environment['spring.profiles.active'] is a SpEL expression that references the value of the spring.profiles.active property in the Spring environment.
+
+**Spring bean references:**
+
+```java
+@Value("#{myBean}")
+private MyBean myBean;
+```
+
+Here, myBean is a reference to another Spring bean that you want to inject into the myBean field.
+
+**Method calls:**
+```java
+@Value("#{myService.calculateValue()}")
+private int calculatedValue;
+```
+
+Here, myService.calculateValue() is a SpEL expression that calls the calculateValue() method on the myService bean and injects the return value into the calculatedValue field.
+
+These are just a few examples of what you can reference with SpEL using @Value. SpEL provides a lot of flexibility and power to Spring applications, making it a popular choice among Spring developers.
+
+<br>
+
+***
+
+### 31. What is Environment Abstraction?
+
+**Environment Abstraction** is part of the Spring Container that models two key aspects of the application environment:
+- Profiles
+- Properties
+
+Environment Abstraction is represented on code level by classes that implements Environment interface. This interface allows you to resolve properties and also to list profiles. You can receive a reference to the class that implements Environment by calling `EnvironmentCapable` class, implemented by `ApplicationContext`.
+
+Properties can also be retrieved by using `@Value("${…}")` annotation.
+
+**Environment Abstraction role in the context of profiles** is to determine which profiles are currently active, and which are activated by default.
+
+**Environment Abstraction role in the context of properties** is to provide convenient, standardized and generic service that allows to resolve properties and also to configure property sources.
+
+**Properties may come from the following sources:**
+- Properties Files
+- JVM system properties
+- System Environment Variables
+- JNDI
+- Servlet Config
+- Servlet Context Parameters
+
+Default property sources for standalone applications are configured in `StandardEnvironment`, which includes JVM system properties and System Environment Variables.
+
+When running Spring Application in Servlet Environment, property sources will be configured based on `StandardServletEnvironment`, which additionally includes Servlet Config and Servlet Context Parameters, optionally it might include JndiPropertySource.
+
+To add additional properties files as property sources you can use `@PropertySource` annotation.
