@@ -2478,5 +2478,36 @@ To add additional properties files as property sources you can use `@PropertySou
     private String javaHome;
 ```
 
+<br>
+
+***
+
+### 34. What is the difference between # and $ in @Value expressions?
 
 
+**The `@Value` annotation supports two types of expressions:**
+
+- Expression starting with $ - used to reference a property in Spring Environment Abstraction
+- Expression starting with # - SpEL expressions parse and evaluated by SpEL
+
+```java
+@Value("${app.file.property}")
+private String appFileProperty;
+@Value("${JAVA_HOME}")
+private String javaHome;
+@Value("${OS}")
+private String osName;
+
+@Value("#{2 + 2}")
+private int additionResult;
+@Value("#{'New York'.toUpperCase()}")
+private String cityName;
+@Value("#{T(java.time.LocalDateTime).now()}")
+private LocalDateTime currentDate;
+@Value("#{systemEnvironment['JAVA_HOME']}")
+private String javaHomeSpel;
+
+// If goal is to only read the env variable, then use $ as it is more compact
+@Value("${JAVA_HOME}")
+private String javaHome;
+```
