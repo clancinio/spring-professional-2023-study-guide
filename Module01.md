@@ -2390,3 +2390,68 @@ Default property sources for standalone applications are configured in `Standard
 When running Spring Application in Servlet Environment, property sources will be configured based on `StandardServletEnvironment`, which additionally includes Servlet Config and Servlet Context Parameters, optionally it might include JndiPropertySource.
 
 To add additional properties files as property sources you can use `@PropertySource` annotation.
+
+<br>
+
+***
+
+### 32. Where can properties in the environment come from?
+
+**Property Sources in Spring Application vary based on the type of applications that is being executed:**
+- Standalone Application
+- Servlet Container Application
+- Spring Boot Application
+
+**Property Sources for Standalone Spring Framework Application:**
+- Properties Files
+- JVM system properties
+- System Environment Variables
+
+**Property Sources for Servlet Container Spring Framework Application:**
+- Properties Files
+- JVM system properties
+- System Environment Variables
+- JNDI
+- ServletConfig init parameters
+- ServletContext init parameters
+
+**Property Sources for Spring Boot Application:**
+- Devtools properties from ~/.spring-boot-devtools.properties (when devtools is active)
+- `@TestPropertySource` annotations on tests
+- Properties attribute in @SpringBootTest tests
+- Command-line arguments
+- Properties from SPRINGAPPLICATIONJSON property
+- ServletConfig init parameters
+- ServletContext init parameters
+- JNDI attributes from java:comp/env
+- JVM system properties
+- System Environment Variables
+- RandomValuePropertySource - ${random.*}
+- application-{profile}.properties and YAML variants - outside of jar
+- application-{profile}.properties and YAML variants – inside jar
+- application.properties and YAML variants - outside of jar
+- application.properties and YAML variants - inside jar
+- @PropertySource annotations on @Configuration classes
+- Default properties - SpringApplication.setDefaultProperties
+
+<br>
+
+***
+
+### 33. What can you reference using SpEL?
+
+**You can reference the following using SpEL:**
+
+- Static Fields from a Class - **T(com.example.Person).DEFAUL_NAME**
+- Static Methods from a Class - **T(com.example.Person).getDefaultName()**
+- Spring Bean Property - **@Person.name**
+- Spring Bean Method - **@Person.getName()**
+- SpEL Variables - **#personName**
+- Object property on reference assigned to SpEL variables - **#person.name**
+- Object method on reference assigned to SpEL variables - **#person.getName()**
+- Spring Application Environment Properties - **environment["app.file.property"]**
+- System Properties - **systemProperties["app.vm.property"]**
+- System Environment Properties - **systemEnvironment["JAV_HOME"]**
+
+
+
