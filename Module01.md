@@ -2453,5 +2453,30 @@ To add additional properties files as property sources you can use `@PropertySou
 - System Properties - **systemProperties["app.vm.property"]**
 - System Environment Properties - **systemEnvironment["JAV_HOME"]**
 
+**Examples:**
+
+```java
+    @Value("#{T(com.spring.professional.exam.tutorial.module01.question33.beans.SpringBean2).staticMethod()}")
+    private String staticMethodExecutionResult;
+
+    @Value("#{T(com.spring.professional.exam.tutorial.module01.question33.beans.SpringBean2).STATIC_VALUE}")
+    private String staticValueFetchResult;
+
+    @Value("#{@springBean2.property}")
+    private String propertyValue;
+
+    @Value("#{@springBean2.method()}")
+    private String methodValue;
+
+    @Value("#{environment['app.file.property']}")
+    private String appFileProperty;
+
+    @Value("#{systemProperties['app.vm.property']}")
+    private String appVmProperty;
+
+    @Value("#{systemEnvironment['JAVA_HOME']}")
+    private String javaHome;
+```
+
 
 
