@@ -4,7 +4,7 @@
 
 ***
 
-### 1. What is the difference between checked and unchecked exceptions?
+## 1. What is the difference between checked and unchecked exceptions?
 
 #### Checked Exceptions
 
@@ -14,7 +14,7 @@ In general, checked exceptions represent errors outside the control of the progr
 
 Therefore, we should use the throws keyword to declare a checked exception:
 
-```
+```java
 private static void checkedExceptionWithThrows() throws FileNotFoundException {
     File file = new File("not_existing_file.txt");
     FileInputStream stream = new FileInputStream(file);
@@ -23,7 +23,7 @@ private static void checkedExceptionWithThrows() throws FileNotFoundException {
 We can also use a try-catch block to handle a checked exception:
 
 
-```
+```java
 private static void checkedExceptionWithThrows() throws FileNotFoundException {
     File file = new File("not_existing_file.txt");
     FileInputStream stream = new FileInputStream(file);
@@ -33,7 +33,7 @@ Some common checked exceptions in Java are IOException, SQLException and ParseEx
 
 The Exception class is the superclass of checked exceptions, so we can create a custom checked exception by extending Exception:
 
-```
+```java
 public class IncorrectFileNameException extends Exception {
     public IncorrectFileNameException(String errorMessage) {
         super(errorMessage);
@@ -53,7 +53,7 @@ Some common unchecked exceptions in Java are NullPointerException, ArrayIndexOut
 
 The RuntimeException class is the superclass of all unchecked exceptions, so we can create a custom unchecked exception by extending RuntimeException:
 
-```
+```java
 public class NullOrEmptyException extends RuntimeException {
     public NullOrEmptyException(String errorMessage) {
         super(errorMessage);
@@ -85,7 +85,7 @@ _Source: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/sp
 
 ***
 
-### 2. How do you configure a DataSource in Spring? Which bean is very useful for development/test databases?
+## 2. How do you configure a DataSource in Spring? Which bean is very useful for development/test databases?
 
 Configuration of Data Source in Spring is dependent on the type of application that is executed.
 
@@ -93,7 +93,7 @@ Configuration of Data Source in Spring is dependent on the type of application t
 
 Data Source is configured in @Configuration class and is created as a bean of one of the supported data source types.
 
-~~~
+~~~java
 @Configuration
 public class DataSourceConfig
 
@@ -125,10 +125,11 @@ When working with development/test databases, the following beans are very usefu
 - EmbeddedDatabaseBuilder - Allows you to easily configure H2/HSQLDB embedded database with schema/data initialization scripts
 - DataSourceInitializer / ResourceDatabasePopulator - Allows you to use schema/data initialization scripts without usage of _EmbeddedDatabaseBuilder_
 
+<br>
 
 ***
 
-### 3. What is the Template design pattern and what is the JDBC template?
+## 3. What is the Template design pattern and what is the JDBC template?
 
 The Template Design Pattern is a behavioural design pattern that can be used to
 encapsulate an algorithm/main flow with its stepsin a way to achieve steps customization and shared code re-usability. It is achieved 
@@ -145,7 +146,7 @@ _Video: https://www.youtube.com/watch?v=cGoVDzHvD4A&ab_channel=Geekific_
 
 **<p align="center">Template Method Abstract Class</p>**
 
-~~~
+~~~java
 public abstract class HouseTemplate {
 
 	// Template method, final so subclasses can't override
@@ -174,7 +175,7 @@ public abstract class HouseTemplate {
 
 **<p align="center">Template Method Concrete Class</p>**
 
-~~~
+~~~java
 public class WoodenHouse extends HouseTemplate {
 
 	@Override
@@ -206,7 +207,7 @@ Problems of JDBC API
 Advantage of Spring JdbcTemplate
 - Spring JdbcTemplate eliminates all the above mentioned problems of JDBC API. It provides you methods to write the queries directly, so it saves a lot of work and time.
 
-~~~
+~~~java
 import org.springframework.jdbc.core.JdbcTemplate;  
   
 public class EmployeeDao {  
@@ -243,3 +244,60 @@ public class EmployeeDao {
 ~~~
 
 _Source: https://www.javatpoint.com/spring-JdbcTemplate-tutorial_
+
+
+<br>
+
+***
+
+## 4. What is a callback? What are the three JdbcTemplate callback interfaces that can be used with queries? What is each used for?
+
+_(You would not have to remember the interface names in the exam, but you should know what they do if you see them in a code sample)._
+
+In Java, a callback is a mechanism that allows a piece of code to be executed at a later time in response to a specific event or condition.
+
+A callback function or method is a reference to executable code that is passed as an argument to another function or method. The function that receives the callback can then call the callback function at the appropriate time, passing any necessary data as arguments.
+
+**On Java level callback can be:**
+- Class that implements interface
+- Anonymous class
+- Lambda expression – JDK 8
+- Reference Method – JDK 8
+
+### Jdbc Template Callbacks that can be used with queries:
+**RowMapper**
+
+In the JDBC template of Spring Framework, `RowMapper` is an interface that defines a strategy for mapping a row of a `ResultSet` to an object.
+
+When we execute a query using JDBC template, we get a `ResultSet` that contains the results of the query. We need to map this `ResultSet` to a collection of objects that can be used in our application. The `RowMapper` interface provides a way to map each row of the `ResultSet` to an object.
+
+The `RowMapper` interface has one method: `mapRow()`. This method takes two arguments: the `ResultSet` object and the row number. It returns the mapped object.
+
+For example, let's say we have a database table called employees with columns id, name, and age. We can use a `RowMapper` to map each row of the `ResultSet` to an `Employee` object:
+
+```java
+public class EmployeeRowMapper implements RowMapper<Employee> {
+
+    @Override
+    public Employee mapRow(ResultSet rs, int rowNum) throws SQLException {
+        Employee employee = new Employee();
+        employee.setId(rs.getInt("id"));
+        employee.setName(rs.getString("name"));
+        employee.setAge(rs.getInt("age"));
+        return employee;
+    }
+}
+```
+
+In this example, we've created a **RowMapper** implementation called `EmployeeRowMapper` that maps each row of the `ResultSet` to an `Employee` object. We use the `ResultSet` to get the values of each column for the current row, and then create a new `Employee` object with those values.
+
+We can then use this `RowMapper` to execute a query and map the results to a list of `Employee` objects:
+
+```java
+List<Employee> employees = jdbcTemplate.query(
+        "SELECT id, name, age FROM employees",
+        new EmployeeRowMapper());
+
+```
+In this example, we're using the query() method of JdbcTemplate to execute a query and map the results to a list of Employee objects using the EmployeeRowMapper. The query() method executes the SQL query and returns the results as a list of Employee objects.
+
