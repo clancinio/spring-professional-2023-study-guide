@@ -337,6 +337,45 @@ jdbcTemplate.query("SELECT id, name, age FROM employees", new EmployeeRowCallbac
 
 In this example, we're using the `query()` method of `JdbcTemplate` to execute a query and process the results using the `EmployeeRowCallbackHandler`. The `query()` method executes the SQL query and calls the `processRow()` method of the `EmployeeRowCallbackHandler` for each row in the `ResultSet`.
 
+<br>
+
+**ResultSetExtractor**
+
+In JDBC template of Spring Framework, `ResultSetExtractor` is an interface that allows us to extract data from a ResultSet object and convert it into an object of our choice.
+
+When we execute a query using JDBC template, we can use a `ResultSetExtractor` to extract data from the `ResultSet` and map it to an object of our choice. This can be useful when we want to map the entire result set to a single object or a collection of objects.
+
+The `ResultSetExtractor` interface has one method: `extractData()`. This method takes a `ResultSet` object as an argument and returns an object of our choice.
+
+For example, let's say we have a database table called `employees` with columns `id`, `name`, and `age`. We can use a `ResultSetExtractor` to map the entire result set to a collection of `Employee` objects:
+
+```java
+public class EmployeeResultSetExtractor implements ResultSetExtractor<List<Employee>> {
+
+    @Override
+    public List<Employee> extractData(ResultSet rs) throws SQLException {
+        List<Employee> employees = new ArrayList<>();
+        while (rs.next()) {
+            Employee employee = new Employee();
+            employee.setId(rs.getInt("id"));
+            employee.setName(rs.getString("name"));
+            employee.setAge(rs.getInt("age"));
+            employees.add(employee);
+        }
+        return employees;
+    }
+}
+```
+
+In this example, we've created a `ResultSetExtractor` implementation called `EmployeeResultSetExtractor` that maps the entire result set to a List of `Employee` objects. We use the `ResultSet` to iterate over each row of the result set, create a new `Employee` object for each row, and set its properties with the values from the `ResultSet`.
+
+We can then use this `ResultSetExtractor` to execute a query and map the results to a List of `Employee` objects:
+
+```java
+List<Employee> employees = jdbcTemplate.query("SELECT id, name, age FROM employees", new EmployeeResultSetExtractor());
+```
+
+In this example, we're using the `query()` method of `JdbcTemplate` to execute a query and map the results to a `List` of `Employee` objects using the `EmployeeResultSetExtractor`. The `query()` method executes the SQL query, calls the `extractData()` method of the `EmployeeResultSetExtractor` to extract the data from the `ResultSet`, and returns the result as a `List` of `Employee` objects.
 
 <br>
 
@@ -365,3 +404,102 @@ Here's an example of how to use the `update()` method to update data in a table:
 jdbcTemplate.update("UPDATE employees SET age = 30 WHERE name = 'John'");
 ```
 In this example, we're using the `update()` method of `JdbcTemplate` to update the age column of the employees table for all rows where the name column equals 'John'. The `update()` method executes the SQL statement and returns the number of rows affected by the statement.
+
+<br>
+
+***
+
+## 6. Can you execute a plain SQL statement with the JDBC template?
+
+The JDBC template of Spring Framework acquires and releases a connection for every method call by default. This is because it uses the `DataSourceUtils` class to manage database connections.
+
+Each method call to the JDBC template creates a new `Connection` object by calling `DataSourceUtils.getConnection()` method, which obtains a connection from the `DataSource` object. After executing the SQL statement, the connection is released by calling `DataSourceUtils.releaseConnection()` method.
+
+The reason for acquiring and releasing a connection for every method call is to ensure that each method call is executed within a transactional context. This means that all database operations within a single method call are executed within a single transaction, which provides consistency and atomicity to the database operations.
+
+If we want to reuse the same connection across multiple method calls, we can use the `TransactionAwareDataSourceProxy` class to wrap our `DataSource` object. This class ensures that the same connection is used for all method calls within a single transaction.
+
+By default, the JDBC template uses `TransactionAwareDataSourceProxy` to manage database connections when running within a transactional context, such as a Spring-managed transaction. However, outside of a transactional context, the JDBC template acquires and releases a new connection for every method call to ensure consistency and isolation.
+
+<br>
+
+***
+
+## 7. How does the JdbcTemplate support generic queries? How does it return objects and lists/maps of objects?
+
+The JdbcTemplate of Spring Framework provides several convenience methods to execute queries and return the result as a single object, a list of objects, a map, or a SqlRowSet.
+
+**queryForObject()**
+
+This method is used to execute a query and return a single object. It takes two arguments - an SQL query string and a `RowMapper` or `ResultSetExtractor`. If the query returns more than one row or no rows, an exception is thrown. Here's an example of using `queryForObject()` to get a single user by `ID`:
+
+```java
+int id = 123; // Example id value to be queried
+User user = jdbcTemplate.queryForObject(
+"SELECT * FROM users WHERE id = ?", new Object[] { id }, new UserRowMapper());
+```
+
+In this example, we're using `queryForObject()` to execute a query and return a single User object with the specified id. We're passing the SQL query string, an array of query parameters, and a UserRowMapper to map the ResultSet to a User object.
+
+**queryForList()**
+
+This method is used to execute a query and return a list of objects. It takes two arguments - an SQL query string and a **RowMapper** or **ResultSetExtractor**. It returns an empty list if the query returns no rows. Here's an example of using `queryForList()` to get a list of all users:
+
+```java
+List<User> users = jdbcTemplate.queryForList("SELECT * FROM users", User.class);
+```
+
+In this example, we're using `queryForList()` to execute a query and return a list of `User` objects. We're passing the SQL query string and the User class as arguments. The JdbcTemplate uses reflection to instantiate User objects and set their properties with the values from the `ResultSet`.
+
+**queryForMap()**
+
+This method is used to execute a query and return a map of objects. It takes two arguments - an SQL query string and a `RowMapper` or `ResultSetExtractor`. It returns an empty map if the query returns no rows. Here's an example of using queryForMap() to get a map of all users indexed by their IDs:
+
+```java
+Map<Integer, User> userMap = jdbcTemplate.queryForMap(
+"SELECT * FROM users", new UserRowMapper(), "id");
+```
+
+In this example, we're using `queryForMap()` to execute a query and return a map of User objects indexed by their id values. We're passing the SQL query string, a `UserRowMapper` to map the `ResultSet` to a User object, and the name of the column to use as the map key.
+
+**queryForRowSet()**
+
+This method is used to execute a query and return a `SqlRowSet`. It takes one argument - an SQL query string. A `SqlRowSet` is a thin wrapper around a `ResultSet` that provides a more convenient API for iterating over the rows. Here's an example of using `queryForRowSet()` to get a `SqlRowSet` of all users:
+
+```java
+SqlRowSet rowSet = jdbcTemplate.queryForRowSet("SELECT * FROM users");
+while (rowSet.next()) {
+int id = rowSet.getInt("id");
+String username = rowSet.getString("username");
+// ...
+}
+```
+
+In this example, we're using `queryForRowSet()` to execute a query and return a `SqlRowSet` of all users. We're then iterating over the rows of the `SqlRowSet` and getting the values of each column using the column name.
+
+
+<br>
+
+***
+
+## 8. What is a transaction? What is the difference between a local and a global transaction?
+
+In the context of a database, a transaction is a unit of work that is executed as a single, indivisible operation. It is a logical construct that groups one or more database operations together into a single, atomic unit of work that either succeeds or fails as a whole.
+
+A local transaction is a transaction that is managed by a single database connection. All operations within the transaction are executed within the same connection, and the transaction is committed or rolled back as a single operation.
+
+A global transaction, also known as a distributed transaction, involves multiple resources or databases that are located on different servers or machines. In this case, a transaction coordinator is used to manage the transaction across all the resources involved. The coordinator ensures that all resources either commit or rollback the transaction as a whole, to maintain data consistency across all the resources.
+
+The difference between local and global transactions is mainly related to the scope of the transaction and the level of coordination required to maintain data consistency. Local transactions are simpler to manage and have a smaller scope, while global transactions involve more complexity and require coordination between multiple resources to maintain data consistency.
+
+**The ACID principles are important guidelines for ensuring that database transactions are executed reliably and accurately.**
+
+- **Atomicity**: Transactions should be treated as a single unit of work that either succeeds or fails as a whole.
+- **Consistency**: Transactions should leave the database in a consistent state, adhering to defined constraints and rules.
+- **Isolation**: Concurrent transactions should not interfere with each other, ensuring that the results of one transaction do not impact the results of another.
+- **Durability**: Once a transaction is committed, its results should be permanent and survive any system failure.
+
+- In simpler terms, ACID principles ensure that database transactions are executed reliably and maintain data integrity.
+
+
+
