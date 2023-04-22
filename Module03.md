@@ -265,6 +265,7 @@ A callback function or method is a reference to executable code that is passed a
 - Reference Method – JDK 8
 
 ### Jdbc Template Callbacks that can be used with queries:
+
 **RowMapper**
 
 In the JDBC template of Spring Framework, `RowMapper` is an interface that defines a strategy for mapping a row of a `ResultSet` to an object.
@@ -299,5 +300,68 @@ List<Employee> employees = jdbcTemplate.query(
         new EmployeeRowMapper());
 
 ```
-In this example, we're using the query() method of JdbcTemplate to execute a query and map the results to a list of Employee objects using the EmployeeRowMapper. The query() method executes the SQL query and returns the results as a list of Employee objects.
+In this example, we're using the `query()` method of `JdbcTemplate` to execute a query and map the results to a list of `Employee` objects using the `EmployeeRowMapper`. The `query()` method executes the SQL query and returns the results as a list of `Employee` objects.
 
+<br>
+
+**RowCallbackHandler**
+
+In JDBC template of Spring Framework, `RowCallbackHandler` is an interface that allows us to process each row of a `ResultSet` object individually, without the need to map the entire result set to a collection of objects.
+
+When we execute a query using JDBC template, we can use a `RowCallbackHandler` to process each row of the `ResultSet` one at a time. This can be useful when we want to perform some operation on each row individually, such as printing the values or updating some other data based on the values.
+
+The `RowCallbackHandler` interface has one method: `processRow()`. This method takes two arguments: the `ResultSet` object and the row number.
+
+For example, let's say we have a database table called employees with columns `id`, `name`, and `age`. We can use a `RowCallbackHandler` to print the values of each row:
+
+```java
+public class EmployeeRowCallbackHandler implements RowCallbackHandler {
+
+    @Override
+    public void processRow(ResultSet rs) throws SQLException {
+        int id = rs.getInt("id");
+        String name = rs.getString("name");
+        int age = rs.getInt("age");
+        System.out.println("Employee: id=" + id + ", name=" + name + ", age=" + age);
+    }
+}
+```
+
+In this example, we've created a `RowCallbackHandler` implementation called `EmployeeRowCallbackHandler` that prints the values of each row of the `ResultSet`. We use the `ResultSet` to get the values of each column for the current row and then print them.
+
+We can then use this `RowCallbackHandler` to execute a query and process the results:
+
+```java
+jdbcTemplate.query("SELECT id, name, age FROM employees", new EmployeeRowCallbackHandler());
+```
+
+In this example, we're using the `query()` method of `JdbcTemplate` to execute a query and process the results using the `EmployeeRowCallbackHandler`. The `query()` method executes the SQL query and calls the `processRow()` method of the `EmployeeRowCallbackHandler` for each row in the `ResultSet`.
+
+
+<br>
+
+***
+
+## 5. Can you execute a plain SQL statement with the JDBC template?
+
+
+Yes, the JDBC template of Spring Framework provides methods to execute plain SQL statements.
+
+The `execute()` method of `JdbcTemplate` is used to execute any SQL statement and it returns a `Boolean` value indicating whether the statement was successfully executed or not.
+
+Here's an example of how to use the `execute()` method to execute a plain SQL statement:
+
+```java
+jdbcTemplate.execute("CREATE TABLE employees (id INT PRIMARY KEY, name VARCHAR(50), age INT)");
+```
+
+In this example, we're using the `execute()` method of `JdbcTemplate` to create a new table named employees with three columns: `id`, `name`, and `age`. The `execute()` method executes the SQL statement and returns a `Boolean` value indicating whether the statement was successfully executed or not.
+
+We can also use the `update()` method of `JdbcTemplate` to execute plain SQL statements that update the database. The `update()` method returns the number of rows affected by the statement.
+
+Here's an example of how to use the `update()` method to update data in a table:
+
+```java
+jdbcTemplate.update("UPDATE employees SET age = 30 WHERE name = 'John'");
+```
+In this example, we're using the `update()` method of `JdbcTemplate` to update the age column of the employees table for all rows where the name column equals 'John'. The `update()` method executes the SQL statement and returns the number of rows affected by the statement.
