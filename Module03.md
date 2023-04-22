@@ -409,7 +409,7 @@ In this example, we're using the `update()` method of `JdbcTemplate` to update t
 
 ***
 
-## 6. Can you execute a plain SQL statement with the JDBC template?
+## 6. When does the JDBC template acquire (and release) a connection, for every method called or once per template? Why?
 
 The JDBC template of Spring Framework acquires and releases a connection for every method call by default. This is because it uses the `DataSourceUtils` class to manage database connections.
 
