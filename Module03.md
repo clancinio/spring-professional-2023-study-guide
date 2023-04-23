@@ -502,4 +502,55 @@ The difference between local and global transactions is mainly related to the sc
 - In simpler terms, ACID principles ensure that database transactions are executed reliably and maintain data integrity.
 
 
+<br>
 
+***
+
+## 8. Is a transaction a cross cutting concern? How is it implemented by Spring?
+
+In Spring, transactions are a cross-cutting concern that can be implemented using the `@Transactional` annotation. 
+
+When this annotation is used on a method or an entire class, each call to that method in the class will be proxied by the `TransactionInterceptor` and `TransactionAspectSupport` classes. These classes will interact with the `PlatformTransactionManager` to either commit the transaction upon successful method execution or roll back the transaction upon an exception, depending on the transaction propagation and isolation level settings specified in the `@Transactional` annotation. 
+
+Additionally, you can configure which exceptions will cause the rollback to occur.
+
+<br>
+
+***
+
+## 9. How are you going to define a transaction in Spring? What does @Transactional do? What is the PlatformTransactionManager?
+
+**How are you going to define a transaction in Spring?**
+
+To use transactions in Spring Framework, you need to:
+1. Enable transaction management by using `@EnableTransactionManagement` annotation on top of your `Configuration` class.
+2. Create bean method in configuration class that will return bean implementing interface `PlatformTransactionManager`, examples of transactions managers (DataSourceTransactionManager, JtaTransactionManager, JpaTransactionManager)
+3. Use `@Transactional` annotation on top of classes or methods that should involve transaction management
+
+_However, if we're using a Spring Boot project and have a spring-data-* or spring-tx dependencies on the classpath, then transaction management will be enabled by default._
+
+<br>
+
+**What does @Transactional do?**
+
+The `@Transactional` annotation can be used on top of classes or methods to enable transaction management for the entire class or specific methods. When a method with the `@Transactional` annotation is called, the invocation is proxied by `TransactionInterceptor` and `TransactionAspectSupport`, which use `PlatformTransactionManager` to manage the transaction. 
+
+The transaction starts at the beginning of the method (if no transaction exists), and it is committed at the end of a successful execution. The transaction can be rolled back upon an exception being thrown. This behavior is dependent on the transaction propagation type.
+
+<br>
+
+**What is the PlatformTransactionManager?**
+
+The `PlatformTransactionManager` is an interface in Spring that provides a unified API for managing transactions across different transactional resources, such as databases, message queues, and other transactional systems.
+
+In Spring, the `PlatformTransactionManager` is responsible for managing transactions in a Spring-managed application. It provides the following methods:
+
+- **getTransaction**: This method creates a new transaction and returns a transaction object representing the transaction.
+
+- **commit**: This method commits the transaction, making all changes to the underlying resources permanent.
+
+- **rollback**: This method rolls back the transaction, undoing all changes to the underlying resources.
+
+- **suspend**: This method suspends the current transaction, allowing another transaction to run.
+
+- **resume**: This method resumes the previously suspended transaction.
