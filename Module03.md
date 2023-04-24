@@ -4,6 +4,8 @@
 
 ***
 
+<br>
+
 ## 1. What is the difference between checked and unchecked exceptions?
 
 #### Checked Exceptions
