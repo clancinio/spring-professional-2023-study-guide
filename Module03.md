@@ -554,3 +554,44 @@ In Spring, the `PlatformTransactionManager` is responsible for managing transact
 - **suspend**: This method suspends the current transaction, allowing another transaction to run.
 
 - **resume**: This method resumes the previously suspended transaction.
+
+<br>
+
+***
+
+## 10. Is the JDBC template able to participate in an existing transaction?
+
+Yes, the JDBC template can participate in an existing transaction managed by a transaction manager, such as the Spring `PlatformTransactionManager`.
+
+When the JdbcTemplate is used in a Spring-managed application, it automatically participates in any existing transaction managed by the transaction manager. This means that any database operations executed through the JdbcTemplate will be included in the current transaction and committed or rolled back as a single unit of work, depending on the outcome of the transaction.
+
+To enable transaction management in Spring, you can annotate a service method or class with the @Transactional annotation, which will cause Spring to manage the transaction for that method or class. Any JdbcTemplate operations executed within that method or class will automatically participate in the transaction.
+
+For example:
+
+```java
+@Service
+public class EmployeeService {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    public EmployeeService(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Transactional
+    public void createEmployeeAndDepartment(Employee employee, Department department) {
+        jdbcTemplate.update("INSERT INTO departments(department_name, department_code) VALUES (?, ?)",
+                department.getDepartmentName(), department.getDepartmentCode());
+        Long departmentId = jdbcTemplate.queryForObject("SELECT last_insert_id()", Long.class);
+        jdbcTemplate.update("INSERT INTO employees(name, email, department_id) VALUES (?, ?, ?)",
+                employee.getName(), employee.getEmail(), departmentId);
+    }
+
+    // other methods...
+}
+```
+
+In this example, the `createEmployeeAndDepartment()` method performs two `JdbcTemplate` operations within a single transaction. The first operation inserts a new department record into the departments table and retrieves the generated `department_id` using the `last_insert_id()` function. The second operation inserts a new employee record into the employees table, using the retrieved `department_id` as the foreign key.
+
+By annotating the `createEmployeeAndDepartment()` method with `@Transactional`, Spring will manage the transaction for both `JdbcTemplate` operations. If either operation fails, the entire transaction will be rolled back, ensuring that the database remains in a consistent state.
