@@ -595,3 +595,37 @@ public class EmployeeService {
 In this example, the `createEmployeeAndDepartment()` method performs two `JdbcTemplate` operations within a single transaction. The first operation inserts a new department record into the departments table and retrieves the generated `department_id` using the `last_insert_id()` function. The second operation inserts a new employee record into the employees table, using the retrieved `department_id` as the foreign key.
 
 By annotating the `createEmployeeAndDepartment()` method with `@Transactional`, Spring will manage the transaction for both `JdbcTemplate` operations. If either operation fails, the entire transaction will be rolled back, ensuring that the database remains in a consistent state.
+
+<br>
+
+***
+
+## 11. What is a transaction isolation level? How many do we have and how are they ordered?
+
+In Spring, a transaction isolation level defines the degree to which the changes made by one transaction are visible to other concurrent transactions. In other words, it specifies the level of isolation between transactions.
+
+Spring supports five transaction isolation levels:
+
+**1. READ_UNCOMMITTED**: This level allows a transaction to read uncommitted changes made by other transactions. This level offers the lowest degree of isolation.
+
+**2. READ_COMMITTED**: This level allows a transaction to read only committed changes made by other transactions. This level is the default isolation level for most databases.
+
+**3. REPEATABLE_READ**: This level ensures that if a transaction reads the same data multiple times, it will get the same result each time. This level prevents phantom reads.
+
+**4.SERIALIZABLE**: This level provides the highest degree of isolation. It ensures that concurrent transactions behave as if they were executed serially, one after the other.
+
+DEFAULT: This level indicates that the default isolation level of the underlying database should be used. This is usually equivalent to READ_COMMITTED.
+
+_These isolation levels are ordered in terms of increasing isolation, from READ_UNCOMMITTED (lowest) to SERIALIZABLE (highest). The higher the isolation level, the more locking and blocking occurs, which can result in decreased performance and increased contention for resources._
+
+| Isolation Level  |  Dirty Read        | Non-repeatable Read | Phantom Read       |
+|------------------|--------------------|---------------------|--------------------|
+| READ_UNCOMMITTED | :heavy_check_mark: | :heavy_check_mark:  | :heavy_check_mark: |
+| READ_COMMITTED   | :x:                | :heavy_check_mark:  | :heavy_check_mark: |
+| REPEATABLE_READ  | :x:                | :x:                 | :heavy_check_mark: |
+| SERIALIZABLE     | :x:                | :x:                 | :x:                |
+
+
+
+
+
