@@ -627,7 +627,8 @@ _These isolation levels are ordered in terms of increasing isolation, from READ_
 | REPEATABLE_READ  | :x:                | :x:                 | :heavy_check_mark: |
 | SERIALIZABLE     | :x:                | :x:                 | :x:                |
 
-
+:heavy_check_mark: Allowed
+:x:  Not allowed
 
 
 
