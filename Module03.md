@@ -508,7 +508,7 @@ The difference between local and global transactions is mainly related to the sc
 
 ***
 
-## 8. Is a transaction a cross cutting concern? How is it implemented by Spring?
+## 9. Is a transaction a cross cutting concern? How is it implemented by Spring?
 
 In Spring, transactions are a cross-cutting concern that can be implemented using the `@Transactional` annotation. 
 
@@ -520,7 +520,7 @@ Additionally, you can configure which exceptions will cause the rollback to occu
 
 ***
 
-## 9. How are you going to define a transaction in Spring? What does @Transactional do? What is the PlatformTransactionManager?
+## 10. How are you going to define a transaction in Spring? What does @Transactional do? What is the PlatformTransactionManager?
 
 **How are you going to define a transaction in Spring?**
 
@@ -561,7 +561,7 @@ In Spring, the `PlatformTransactionManager` is responsible for managing transact
 
 ***
 
-## 10. Is the JDBC template able to participate in an existing transaction?
+## 11. Is the JDBC template able to participate in an existing transaction?
 
 Yes, the JDBC template can participate in an existing transaction managed by a transaction manager, such as the Spring `PlatformTransactionManager`.
 
@@ -602,7 +602,7 @@ By annotating the `createEmployeeAndDepartment()` method with `@Transactional`, 
 
 ***
 
-## 11. What is a transaction isolation level? How many do we have and how are they ordered?
+## 12. What is a transaction isolation level? How many do we have and how are they ordered?
 
 In Spring, a transaction isolation level defines the degree to which the changes made by one transaction are visible to other concurrent transactions. In other words, it specifies the level of isolation between transactions.
 
@@ -630,5 +630,35 @@ _These isolation levels are ordered in terms of increasing isolation, from READ_
 :heavy_check_mark: Allowed
 :x:  Not allowed
 
+<br>
 
+***
+
+## 13. What is @EnableTransactionManagement for?
+
+`@EnableTransactionManagement` annotation is used on top of `@Configuration` class to enable annotation-driven transaction management by `@Transactional` annotation in Spring Framework.
+
+When `@EnableTransactionManagement` is used, `TransactionInterceptor` and `TransactionAspectSupport` will be used to proxy each call to `@Transactional` class or method, which will use `PlatformTransactionManager` to manage transaction.
+
+`@EnableTransactionManagement` allows you to specify following values:
+- **Mode** – sets advice mode for `@Transactional` annotation, indicates how calls to methods should be intercepted, PROXY is default mode, you can switch it to more advanced ASPECTJ weaving advice, which supports local calls
+- **Order** – indicates order of advice execution when more then one advice applies to `@Transactional` join point
+- **proxyTargetClass** – indicates whether CGLIB Proxy classes should be created or if JDK Proxies should be created (default), this field is used only when Mode is set to PROXY
+
+<br>
+
+***
+
+## 13. What is @EnableTransactionManagement for?
+
+Transaction propagation defines how existing transaction is re-used when calling @Transactional method with transaction already running.
+
+Transaction propagation can be defined in @Transactional annotation in propagation field as one of following options:
+- **REQUIRED** - support a current transaction, create a new one if none exists
+- **SUPPORTS** - support a current transaction, execute non-transactionally if none exists
+- **MANDATORY** - support a current transaction, throw an exception if none exists
+- **REQUIRES_NEW** - create a new transaction, and suspend the current transaction if one exists
+- **NOT_SUPPORTED** - execute non-transactionally, suspend the current transaction if one exists
+- **NEVER** - execute non-transactionally, throw an exception if a transaction exists
+- **NESTED** - execute within a nested transaction if a current transaction exists, behave like REQUIRED else
 
