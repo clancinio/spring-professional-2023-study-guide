@@ -649,7 +649,7 @@ When `@EnableTransactionManagement` is used, `TransactionInterceptor` and `Trans
 
 ***
 
-## 13. What is @EnableTransactionManagement for?
+## 14. What is @EnableTransactionManagement for?
 
 Transaction propagation defines how existing transaction is re-used when calling @Transactional method with transaction already running.
 
@@ -661,4 +661,126 @@ Transaction propagation can be defined in @Transactional annotation in propagati
 - **NOT_SUPPORTED** - execute non-transactionally, suspend the current transaction if one exists
 - **NEVER** - execute non-transactionally, throw an exception if a transaction exists
 - **NESTED** - execute within a nested transaction if a current transaction exists, behave like REQUIRED else
+
+<br>
+
+***
+
+## 15. What happens if one @Transactional annotated method is calling another @Transactional annotated method on the same object instance?
+
+The JDK Proxy and CGLIB Proxy used in Spring Beans AOP do not support self-invocation. Therefore, when a method annotated with @Transactional calls a different method with @Transactional from the same class, the transaction interceptor will not be invoked.
+
+```java
+@Sevice
+public class EmployeeService{
+  
+  public void transation1and2(){
+    transaction1();
+    transaction2();
+  }
+  
+  public void transaction1and2WithPreceedingTransaction(){
+    transaction1();
+    transaction2();
+  }
+  
+  public void transaction1(){
+    System.out.println("transation1 method")
+  }
+
+  public void transaction2(){
+    System.out.println("transation2 method")
+  }
+}
+```
+**How it works with spring-proxy?**
+
+When `transaction1And2()` is started, nothing will happen with the connection because the method is not annotated with the `@Transactional` annotation. Then `transaction1()` and `transaction2()` methods are called from `transaction1And2()`, which are annotated with` @Transactional`. However, transactions will not be created for those methods.
+
+In another example, `transaction1And2WithPrecedingTransaction()` method, which is annotated with `@Transactional`, will get the connection and create the transaction. When `transaction1()` and `transaction2()` are called from that method, nothing will happen. After `transaction1And2WithPrecedingTransaction()` method finished, the connection will be committed and closed."
+
+**Spring AspectJ Support**
+
+To enable self-invocation support, you need to configure Spring Aspects with AspectJ, to do that you need to:
+- Have dependency to spring-aspects
+- Include aspectj-maven-plugin
+- Configure Transaction Support with `@EnableTransactionManagement(mode = AdviceMode.ASPECTJ)`
+
+<br>
+
+***
+
+## 16. Where can the @Transactional annotation be used? What is a typical usage if you put it at class level?
+
+`@Transactional `can be used on top of class or method, in classes or interfaces.
+
+If used on top of class, it applies to all public methods in this class.
+
+If used on top of method, it needs to have public access modifier, if used on top of protected / package-visible / private method, transaction management will not be applied.
+
+
+<br>
+
+***
+
+## 17. What does declarative transaction management mean?
+
+**Declarative transaction management** means that instead of handling transactions manually through the code, methods which should be executed in transactions are declared with `@Transactional` annotation.
+
+```java
+@Transactional
+public void declarativeTransation(){
+  // use dao to update data...
+}
+
+public void manualTransaction() throws SQLException {
+  
+  Connection connection = dataSource.getConnection();
+  
+  connection.setAutoCommit(false);
+  connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITED);
+  
+  try {
+    // use dao to update data on transaction
+    
+    connection.commit();
+  } catch(SQLException w) {
+    connection.rollback();
+  } finally {
+    connection.close();
+  }
+}
+```
+<br>
+
+***
+
+## 18. What is the default rollback policy? How can you override it?
+
+In Spring's transactional management, the default rollback policy is based on runtime exceptions. By default, if a method annotated with `@Transactional` throws any unchecked (runtime) exception, the transaction will be rolled back. Checked exceptions do not trigger a rollback by default.
+
+To override the default rollback policy, you can use the rollbackFor and noRollbackFor attributes of the `@Transactional` annotation.
+
+rollbackFor: This attribute specifies the exception types for which a rollback should be triggered. You can provide one or more exception classes or interfaces as values. For example, `@Transactional(rollbackFor = {SQLException.class, IOException.class})` will cause a rollback if either `SQLException` or `IOException` is thrown.
+
+noRollbackFor: This attribute specifies the exception types for which a rollback should not occur. You can provide one or more exception classes or interfaces as values. For example, `@Transactional(noRollbackFor = {CustomException.class})` will not trigger a rollback if `CustomException` is thrown.
+
+Here's an example that demonstrates the usage of rollbackFor and noRollbackFor:
+
+```java
+@Transactional(rollbackFor = {SQLException.class}, noRollbackFor = {CustomException.class})
+public void performTransaction() {
+// Code that may throw exceptions
+}
+```
+
+In the above example, a transaction will be rolled back if a `SQLException` occurs, but it will not be rolled back if a `CustomException` is thrown.
+
+By customizing the rollbackFor and noRollbackFor attributes, you can override the default rollback policy and define specific exception types that should or should not trigger a transaction rollback.
+
+
+
+
+
+
 
